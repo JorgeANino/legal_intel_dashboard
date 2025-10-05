@@ -163,8 +163,6 @@ docker-compose exec backend alembic upgrade head
 docker-compose exec backend alembic history
 ```
 
-See [Backend Migrations Guide](backend/MIGRATIONS.md) for full documentation.
-
 ### Database Access
 
 ```bash
