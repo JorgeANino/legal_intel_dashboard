@@ -1,0 +1,157 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with pgvector extension
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: legal_intel_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-legal_intel}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - legal_intel_network
+
+  # Redis for Celery and caching
+  redis:
+    image: redis:7-alpine
+    container_name: legal_intel_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - legal_intel_network
+
+  # FastAPI Backend
+  backend:
+    container_name: legal_intel_backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+      - uploads:/app/uploads
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-legal_intel}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - legal_intel_network
+
+  # Celery Worker for document processing
+  celery_worker:
+    container_name: legal_intel_celery
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+      - uploads:/app/uploads
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-legal_intel}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+      - backend
+    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+    networks:
+      - legal_intel_network
+    restart: unless-stopped
+
+  # Celery Flower for monitoring
+  flower:
+    container_name: legal_intel_flower
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - celery_worker
+    command: celery -A app.core.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    networks:
+      - legal_intel_network
+    restart: unless-stopped
+
+  # Next.js Frontend
+  frontend:
+    container_name: legal_intel_frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/styles:/app/styles
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend/next.config.js:/app/next.config.js
+      - ./frontend/tailwind.config.ts:/app/tailwind.config.ts
+      - ./frontend/postcss.config.mjs:/app/postcss.config.mjs
+      - frontend_node_modules:/app/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - legal_intel_network
+
+volumes:
+  postgres_data:
+  uploads:
+  frontend_node_modules:
+
+networks:
+  legal_intel_network:
+    driver: bridge
+
