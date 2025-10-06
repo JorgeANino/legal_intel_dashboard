@@ -2,12 +2,14 @@
 Dashboard statistics endpoint
 """
 # Local application imports
-from app.core.database import get_db
-from app.schemas.document import DashboardStats
-from app.services.dashboard_service import DashboardService
 # Third-party imports
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+from app.schemas.document import DashboardStats
+from app.services.dashboard_service import DashboardService
+
 
 router = APIRouter()
 

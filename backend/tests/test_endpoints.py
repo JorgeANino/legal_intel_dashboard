@@ -2,14 +2,11 @@
 Comprehensive tests for all API endpoints
 """
 # Standard library imports
-import json
 from unittest.mock import MagicMock, patch
 
+
 # Third-party imports
-import pytest
 # Local application imports
-from app.main import app
-from fastapi.testclient import TestClient
 
 
 class TestHealthEndpoints:
@@ -27,10 +24,10 @@ class TestHealthEndpoints:
         """Test health check with service checks"""
         with patch('app.api.v1.endpoints.health.check_database') as mock_db, \
              patch('app.api.v1.endpoints.health.check_redis') as mock_redis:
-            
+
             mock_db.return_value = True
             mock_redis.return_value = True
-            
+
             response = client.get("/api/v1/health?include_checks=true")
             assert response.status_code == 200
             data = response.json()
@@ -104,19 +101,19 @@ class TestAuthEndpoints:
         # Mock database response
         mock_session = MagicMock()
         mock_get_db.return_value.__aenter__.return_value = mock_session
-        
+
         # Mock user query result
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = mock_user
         mock_session.execute.return_value = mock_result
-        
+
         # Mock password verification
         with patch('app.api.v1.endpoints.auth.verify_password', return_value=True):
             response = client.post("/api/v1/auth/login", json={
                 "email": "test@example.com",
                 "password": "testpassword123"
             })
-            
+
             assert response.status_code == 200
             data = response.json()
             assert "access_token" in data
@@ -152,12 +149,12 @@ class TestDocumentEndpoints:
         # Mock database response
         mock_session = MagicMock()
         mock_get_db.return_value.__aenter__.return_value = mock_session
-        
+
         # Mock documents query result
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = [mock_document]
         mock_session.execute.return_value = mock_result
-        
+
         # Mock authentication
         with patch('app.api.v1.endpoints.documents.get_current_user', return_value=mock_document):
             response = client.get("/api/v1/documents")
@@ -204,12 +201,12 @@ class TestDashboardEndpoints:
         # Mock database response
         mock_session = MagicMock()
         mock_get_db.return_value.__aenter__.return_value = mock_session
-        
+
         # Mock dashboard query results
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = []
         mock_session.execute.return_value = mock_result
-        
+
         # Mock authentication
         with patch('app.api.v1.endpoints.dashboard.get_current_user', return_value={"id": 1}):
             response = client.get("/api/v1/dashboard")
@@ -243,7 +240,7 @@ class TestWebSocketEndpoints:
         # Local application imports
         from app.api.v1.endpoints.websocket import router
         assert router is not None
-        
+
         # Check if the websocket route is registered
         routes = [route.path for route in router.routes]
         assert any("/ws/" in route for route in routes)
@@ -257,14 +254,14 @@ class TestAPIRouter:
         # Test that all main endpoint groups are accessible
         endpoints_to_test = [
             "/api/v1/health",
-            "/api/v1/monitoring/health", 
+            "/api/v1/monitoring/health",
             "/api/v1/auth/login",
             "/api/v1/documents",
             "/api/v1/query",
             "/api/v1/dashboard",
             "/api/v1/users"
         ]
-        
+
         for endpoint in endpoints_to_test:
             response = client.get(endpoint)
             # Should not return 404 (endpoint exists)
@@ -289,7 +286,7 @@ class TestAPIRouter:
             "/api/v1/auth/login",
             "/api/v1/documents"
         ]
-        
+
         for endpoint in endpoints:
             response = client.get(endpoint)
             # Should not return 404 (correct prefix)

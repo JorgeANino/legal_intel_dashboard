@@ -2,10 +2,21 @@
 API v1 Router - Legal Intel Dashboard
 """
 # Local application imports
-from app.api.v1.endpoints import (auth, dashboard, documents, export, health,
-                                  monitoring, query, users, websocket)
 # Third-party imports
 from fastapi import APIRouter
+
+from app.api.v1.endpoints import (
+    auth,
+    dashboard,
+    documents,
+    export,
+    health,
+    monitoring,
+    query,
+    users,
+    websocket,
+)
+
 
 api_router = APIRouter()
 

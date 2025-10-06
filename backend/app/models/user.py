@@ -2,10 +2,11 @@
 User model
 """
 # Local application imports
-from app.core.database import Base
-from app.models.base import AuditMixin
 # Third-party imports
 from sqlalchemy import Boolean, Column, Integer, String
+
+from app.core.database import Base
+from app.models.base import AuditMixin
 
 
 class User(Base, AuditMixin):

@@ -3,10 +3,11 @@ Embedding service for generating and managing document embeddings
 """
 
 # Local application imports
-from app.core.config import settings
 # Third-party imports
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
+
+from app.core.config import settings
 
 
 class EmbeddingService:

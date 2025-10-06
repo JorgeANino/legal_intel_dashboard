@@ -25,7 +25,7 @@ export const ResultsTable = ({
   data,
   onPageChange,
   onFilterChange,
-  onSortChange,
+  onSortChange: _onSortChange,
   availableFilters,
 }: Props) => {
   const [exportFormat, setExportFormat] = useState<'csv' | 'pdf'>('csv');

@@ -4,11 +4,13 @@ Security utilities for authentication and authorization
 # Standard library imports
 from datetime import datetime, timedelta
 
-# Local application imports
-from app.core.config import settings
 # Third-party imports
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+
+# Local application imports
+from app.core.config import settings
+
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

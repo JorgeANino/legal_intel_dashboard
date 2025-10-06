@@ -2,9 +2,11 @@
 Production Celery configuration with retry logic
 """
 # Local application imports
-from app.core.config import settings
 # Third-party imports
 from celery import Celery
+
+from app.core.config import settings
+
 
 # Create Celery instance
 celery_app = Celery(

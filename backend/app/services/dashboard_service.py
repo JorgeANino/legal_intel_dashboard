@@ -5,12 +5,13 @@ Dashboard service for generating statistics with caching
 from collections import Counter
 from typing import Any
 
-# Local application imports
-from app.middleware.cache import cache_service
-from app.models.document import Document, DocumentMetadata
 # Third-party imports
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# Local application imports
+from app.middleware.cache import cache_service
+from app.models.document import Document, DocumentMetadata
 
 
 class DashboardService:

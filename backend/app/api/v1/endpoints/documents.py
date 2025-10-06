@@ -4,17 +4,18 @@ Document upload and management endpoints
 # Standard library imports
 import traceback
 
+# Third-party imports
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 # Local application imports
 from app.core.database import get_db
 from app.middleware.cache import cache_service
 from app.middleware.rate_limit import rate_limit_dependency
-from app.schemas.document import (BatchUploadResponse, DocumentResponse,
-                                  DocumentUploadResponse)
+from app.schemas.document import BatchUploadResponse, DocumentResponse, DocumentUploadResponse
 from app.services.document_service import DocumentService
 from app.tasks.document_tasks import process_document_task
-# Third-party imports
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from sqlalchemy.ext.asyncio import AsyncSession
+
 
 router = APIRouter()
 

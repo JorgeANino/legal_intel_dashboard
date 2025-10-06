@@ -3,7 +3,6 @@ WebSocket connection manager for real-time updates
 """
 # Standard library imports
 import json
-from typing import Dict, Set
 
 # Third-party imports
 import redis.asyncio as aioredis
@@ -17,15 +16,15 @@ class ConnectionManager:
     """
     Manages WebSocket connections and Redis pub/sub for real-time updates
     """
-    
+
     def __init__(self):
-        self.active_connections: Dict[int, Set[WebSocket]] = {}
+        self.active_connections: dict[int, set[WebSocket]] = {}
         self.redis_client: aioredis.Redis = None
 
     async def connect(self, websocket: WebSocket, user_id: int) -> None:
         """
         Accept WebSocket connection and track it
-        
+
         Args:
             websocket: The WebSocket connection
             user_id: The user ID for this connection
@@ -39,7 +38,7 @@ class ConnectionManager:
     def disconnect(self, websocket: WebSocket, user_id: int) -> None:
         """
         Remove connection when client disconnects
-        
+
         Args:
             websocket: The WebSocket connection to remove
             user_id: The user ID for this connection
@@ -53,7 +52,7 @@ class ConnectionManager:
     async def send_to_user(self, user_id: int, message: dict) -> None:
         """
         Send message to all connections for a user
-        
+
         Args:
             user_id: The user ID to send the message to
             message: The message to send
@@ -74,7 +73,7 @@ class ConnectionManager:
     async def get_redis_client(self) -> aioredis.Redis:
         """
         Get or create Redis client for pub/sub operations
-        
+
         Returns:
             Redis client instance
         """
@@ -87,15 +86,15 @@ class ConnectionManager:
     async def broadcast_document_update(self, document_id: int, user_id: int, status: dict) -> None:
         """
         Broadcast document status update to user's connections
-        
+
         Args:
             document_id: The document ID that was updated
             user_id: The user ID to notify
             status: The status information to broadcast
         """
         message = {
-            "type": "document_update", 
-            "document_id": document_id, 
+            "type": "document_update",
+            "document_id": document_id,
             "status": status
         }
         await self.send_to_user(user_id, message)
@@ -126,9 +125,9 @@ async def notify_document_update(
 ) -> None:
     """
     Publish document status update to Redis pub/sub
-    
+
     Call this from Celery tasks when processing completes/fails
-    
+
     Args:
         document_id: The document ID that was updated
         user_id: The user ID to notify

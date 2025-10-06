@@ -5,13 +5,14 @@ Document service for handling document operations
 import hashlib
 from pathlib import Path
 
-# Local application imports
-from app.models.document import Document
 # Third-party imports
 from fastapi import UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
+# Local application imports
+from app.models.document import Document
 
 
 class DocumentService:

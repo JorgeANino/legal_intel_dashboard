@@ -2,11 +2,13 @@
 Health check endpoints
 """
 # Local application imports
-from app.core.database import get_db
 # Third-party imports
 from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+
 
 router = APIRouter()
 

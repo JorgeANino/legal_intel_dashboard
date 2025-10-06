@@ -7,18 +7,18 @@ import io
 from datetime import datetime
 from typing import Any
 
-# Local application imports
-from app.schemas.document import DashboardStats, ExportRequest, QueryResponse
-from app.services.dashboard_service import DashboardService
-from app.services.query_service import QueryService
 # Third-party imports
 from fastapi import HTTPException
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# Local application imports
+from app.schemas.document import DashboardStats, ExportRequest
+from app.services.dashboard_service import DashboardService
+from app.services.query_service import QueryService
 
 
 class ExportService:
@@ -88,14 +88,14 @@ class ExportService:
             return ""
 
         output = io.StringIO()
-        
+
         # Get all possible headers
-        headers = set(["document", "document_id"])
+        headers = {"document", "document_id"}
         for result in results:
             if "metadata" in result:
                 headers.update(result["metadata"].keys())
-        
-        headers = sorted(list(headers))
+
+        headers = sorted(headers)
         writer = csv.DictWriter(output, fieldnames=headers)
         writer.writeheader()
 
@@ -104,10 +104,10 @@ class ExportService:
                 "document": result.get("document", ""),
                 "document_id": result.get("document_id", "")
             }
-            
+
             if "metadata" in result:
                 row.update(result["metadata"])
-            
+
             writer.writerow(row)
 
         return output.getvalue()
@@ -135,7 +135,7 @@ class ExportService:
         query_info += f"<b>Total Results:</b> {results['total_results']}<br/>"
         query_info += f"<b>Execution Time:</b> {results['execution_time_ms']}ms<br/>"
         query_info += f"<b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-        
+
         story.append(Paragraph(query_info, styles['Normal']))
         story.append(Spacer(1, 20))
 
@@ -143,25 +143,25 @@ class ExportService:
         if results["results"]:
             # Prepare table data
             table_data = [["Document", "Document ID"]]
-            
+
             # Add metadata headers
             metadata_headers = set()
             for result in results["results"]:
                 if "metadata" in result:
                     metadata_headers.update(result["metadata"].keys())
-            
+
             table_data[0].extend(sorted(metadata_headers))
-            
+
             # Add data rows
             for result in results["results"]:
                 row = [result.get("document", ""), str(result.get("document_id", ""))]
-                
+
                 for header in sorted(metadata_headers):
                     value = ""
                     if "metadata" in result and header in result["metadata"]:
                         value = str(result["metadata"][header]) if result["metadata"][header] is not None else ""
                     row.append(value)
-                
+
                 table_data.append(row)
 
             # Create table
@@ -210,7 +210,7 @@ class ExportService:
         report_info += f"<b>Total Documents:</b> {stats.total_documents}<br/>"
         report_info += f"<b>Processed Documents:</b> {stats.processed_documents}<br/>"
         report_info += f"<b>Total Pages:</b> {stats.total_pages:,}"
-        
+
         story.append(Paragraph(report_info, styles['Normal']))
         story.append(Spacer(1, 20))
 
@@ -220,7 +220,7 @@ class ExportService:
             agreement_data = [["Agreement Type", "Count"]]
             for agreement_type, count in stats.agreement_types.items():
                 agreement_data.append([agreement_type, str(count)])
-            
+
             agreement_table = Table(agreement_data)
             agreement_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
@@ -241,7 +241,7 @@ class ExportService:
             jurisdiction_data = [["Jurisdiction", "Count"]]
             for jurisdiction, count in stats.jurisdictions.items():
                 jurisdiction_data.append([jurisdiction, str(count)])
-            
+
             jurisdiction_table = Table(jurisdiction_data)
             jurisdiction_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
@@ -262,7 +262,7 @@ class ExportService:
             industry_data = [["Industry", "Count"]]
             for industry, count in stats.industries.items():
                 industry_data.append([industry, str(count)])
-            
+
             industry_table = Table(industry_data)
             industry_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
@@ -283,7 +283,7 @@ class ExportService:
             geography_data = [["Geography", "Count"]]
             for geography, count in stats.geographies.items():
                 geography_data.append([geography, str(count)])
-            
+
             geography_table = Table(geography_data)
             geography_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),

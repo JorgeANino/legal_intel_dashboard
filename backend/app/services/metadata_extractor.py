@@ -5,14 +5,15 @@ Metadata extraction service with LLM integration and rule-based fallback
 import re
 from typing import Any
 
-# Local application imports
-from app.core.config import settings
-from app.schemas.document import ExtractedMetadata
 # Third-party imports
 from langchain_anthropic import ChatAnthropic
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+
+# Local application imports
+from app.core.config import settings
+from app.schemas.document import ExtractedMetadata
 
 
 class MetadataExtractor:

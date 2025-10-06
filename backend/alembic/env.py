@@ -9,16 +9,19 @@ import sys
 from logging.config import fileConfig
 from pathlib import Path
 
-# Local application imports
-from alembic import context
 # Third-party imports
 from sqlalchemy import engine_from_config, pool
+
+# Local application imports
+from alembic import context
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Local application imports
-from app.core.config import settings
-from app.models import Base  # This imports all models via __init__.py
+from app.core.config import settings  # noqa: E402
+from app.models import Base  # noqa: E402 - This imports all models via __init__.py
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

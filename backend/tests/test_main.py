@@ -2,10 +2,7 @@
 Basic tests for the main FastAPI application
 """
 # Third-party imports
-import pytest
 # Local application imports
-from app.main import app
-from fastapi.testclient import TestClient
 
 
 def test_health_check(client):

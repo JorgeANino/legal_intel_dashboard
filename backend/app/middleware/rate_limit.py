@@ -4,11 +4,12 @@ Rate limiting middleware to prevent abuse
 # Standard library imports
 import time
 
-# Local application imports
-from app.core.config import settings
 # Third-party imports
 from fastapi import HTTPException, Request, status
 from redis import asyncio as aioredis
+
+# Local application imports
+from app.core.config import settings
 
 
 class RateLimiter:

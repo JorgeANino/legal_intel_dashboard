@@ -9,13 +9,14 @@ from pathlib import Path
 # Third-party imports
 from sqlalchemy import select
 
+
 # Add parent directory to path to import local modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Local application imports
-from app.core.database import AsyncSessionLocal
-from app.core.security import get_password_hash
-from app.models.user import User
+from app.core.database import AsyncSessionLocal  # noqa: E402
+from app.core.security import get_password_hash  # noqa: E402
+from app.models.user import User  # noqa: E402
 
 
 async def create_test_user():

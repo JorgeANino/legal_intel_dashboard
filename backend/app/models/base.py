@@ -25,7 +25,7 @@ class AuditMixin:
     def soft_delete(self, deleted_by: int | None = None) -> None:
         """
         Soft delete the record by setting deleted_at timestamp
-        
+
         Args:
             deleted_by: User ID who is performing the deletion
         """

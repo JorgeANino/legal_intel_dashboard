@@ -6,9 +6,6 @@ import contextlib
 import time
 from typing import Any
 
-# Local application imports
-from app.core.config import settings
-from app.models.document import Document, DocumentMetadata, Query
 # Third-party imports
 from langchain_anthropic import ChatAnthropic
 from langchain_core.output_parsers import JsonOutputParser
@@ -17,6 +14,10 @@ from langchain_openai import ChatOpenAI
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
+# Local application imports
+from app.core.config import settings
+from app.models.document import Document, DocumentMetadata, Query
 
 
 class QueryService:
@@ -40,10 +41,10 @@ class QueryService:
                 )
 
     async def execute_query(
-        self, 
-        question: str, 
-        user_id: int, 
-        db: AsyncSession, 
+        self,
+        question: str,
+        user_id: int,
+        db: AsyncSession,
         max_results: int = 10,
         page: int = 1,
         filters: dict[str, Any] | None = None,
@@ -166,10 +167,10 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
         return analysis
 
     async def _fetch_matching_documents(
-        self, 
-        query_analysis: dict[str, Any], 
-        user_id: int, 
-        db: AsyncSession, 
+        self,
+        query_analysis: dict[str, Any],
+        user_id: int,
+        db: AsyncSession,
         max_results: int,
         page: int = 1,
         filters: dict[str, Any] | None = None,
@@ -205,7 +206,7 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
         if filters:
             if not analysis_filters:  # Only join if not already joined
                 stmt = stmt.join(DocumentMetadata)
-            
+
             if filters.get("agreement_types"):
                 stmt = stmt.where(DocumentMetadata.agreement_type.in_(filters["agreement_types"]))
             if filters.get("jurisdictions"):
@@ -325,7 +326,7 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
                 .join(Document)
                 .where(
                     and_(
-                        Document.processed == True,
+                        Document.processed,
                         DocumentMetadata.agreement_type.ilike(f"%{query}%"),
                         DocumentMetadata.agreement_type.isnot(None)
                     )
@@ -343,7 +344,7 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
                 .join(Document)
                 .where(
                     and_(
-                        Document.processed == True,
+                        Document.processed,
                         DocumentMetadata.jurisdiction.ilike(f"%{query}%"),
                         DocumentMetadata.jurisdiction.isnot(None)
                     )
@@ -361,7 +362,7 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
                 .join(Document)
                 .where(
                     and_(
-                        Document.processed == True,
+                        Document.processed,
                         DocumentMetadata.industry.ilike(f"%{query}%"),
                         DocumentMetadata.industry.isnot(None)
                     )
@@ -379,7 +380,7 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
                 .join(Document)
                 .where(
                     and_(
-                        Document.processed == True,
+                        Document.processed,
                         DocumentMetadata.geography.ilike(f"%{query}%"),
                         DocumentMetadata.geography.isnot(None)
                     )

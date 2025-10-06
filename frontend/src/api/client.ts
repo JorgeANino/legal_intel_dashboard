@@ -25,8 +25,6 @@ apiClient.interceptors.request.use(
     // if (token) {
     //   config.headers.Authorization = `Bearer ${token}`;
     // }
-
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error) => {
@@ -39,7 +37,7 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => {
     const duration = Date.now() - (response.config.metadata?.startTime || 0);
-    console.log(`API Response: ${response.config.url} (${duration}ms)`);
+    console.log(`API Response: ${response.config.url} (${duration}ms)`)
     return response;
   },
   async (error: AxiosError) => {

@@ -2,12 +2,13 @@
 Production-ready database configuration with connection pooling
 """
 # Local application imports
-from app.core.config import settings
 # Third-party imports
-from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
-                                    create_async_engine)
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.pool import AsyncAdaptedQueuePool
+
+from app.core.config import settings
+
 
 # Create async engine with connection pooling for production
 engine = create_async_engine(

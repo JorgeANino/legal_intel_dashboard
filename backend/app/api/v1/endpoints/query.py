@@ -2,13 +2,15 @@
 Mass interrogation query endpoint
 """
 # Local application imports
+# Third-party imports
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
 from app.middleware.rate_limit import rate_limit_dependency
 from app.schemas.document import QueryRequest, QueryResponse, QuerySuggestionsResponse
 from app.services.query_service import QueryService
-# Third-party imports
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+
 
 router = APIRouter()
 
@@ -36,9 +38,9 @@ async def query_documents(
 
     try:
         results = await service.execute_query(
-            question=request.question, 
-            user_id=user_id, 
-            db=db, 
+            question=request.question,
+            user_id=user_id,
+            db=db,
             max_results=request.max_results or 50,
             page=request.page or 1,
             filters=request.filters,
@@ -59,7 +61,7 @@ async def get_query_suggestions(
 ):
     """
     Get query suggestions based on partial input
-    
+
     Returns:
     - suggestions: Generated query suggestions
     - popular_queries: Popular queries from database
@@ -67,7 +69,7 @@ async def get_query_suggestions(
     - metadata_suggestions: Available filter options
     """
     service = QueryService()
-    
+
     try:
         suggestions = await service.get_query_suggestions(q, limit, db)
         return suggestions

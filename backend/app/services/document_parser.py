@@ -4,7 +4,7 @@ Document parser for PDF and DOCX files
 
 # Third-party imports
 import docx
-import PyPDF2
+from pypdf import PdfReader
 
 
 class DocumentParser:
@@ -20,7 +20,7 @@ class DocumentParser:
         """
         try:
             with open(file_path, "rb") as file:
-                pdf_reader = PyPDF2.PdfReader(file)
+                pdf_reader = PdfReader(file)
                 page_count = len(pdf_reader.pages)
 
                 text_parts = []

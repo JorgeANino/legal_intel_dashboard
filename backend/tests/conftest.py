@@ -7,9 +7,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 # Third-party imports
 import pytest
+from fastapi.testclient import TestClient
+
 # Local application imports
 from app.main import app
-from fastapi.testclient import TestClient
 
 
 @pytest.fixture
@@ -106,7 +107,7 @@ def mock_query_result():
                 "agreement_type": "Service Agreement"
             },
             {
-                "document": "contract_2.pdf", 
+                "document": "contract_2.pdf",
                 "governing_law": "New York",
                 "agreement_type": "NDA"
             }

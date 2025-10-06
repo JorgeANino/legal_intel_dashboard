@@ -4,14 +4,16 @@ Health check and monitoring endpoints
 # Standard library imports
 from datetime import datetime
 
-# Local application imports
-from app.core.config import settings
-from app.core.database import get_db
 # Third-party imports
 from fastapi import APIRouter, Depends
 from redis import asyncio as aioredis
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# Local application imports
+from app.core.config import settings
+from app.core.database import get_db
+
 
 router = APIRouter()
 
@@ -62,8 +64,9 @@ async def get_metrics(db: AsyncSession = Depends(get_db)):
     try:
         # Third-party imports
         # Local application imports
-        from app.models.document import Document, Query
         from sqlalchemy import func, select
+
+        from app.models.document import Document, Query
 
         # Get processing queue size
         pending_docs = await db.execute(

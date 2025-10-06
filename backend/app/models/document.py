@@ -2,14 +2,26 @@
 Document models for Legal Intel Dashboard
 """
 # Local application imports
-from app.core.database import Base
-from app.models.base import AuditMixin
 # Third-party imports
-from sqlalchemy import (ARRAY, DECIMAL, Boolean, Column, Date, DateTime, Float,
-                        ForeignKey, Integer, String, Text)
+from sqlalchemy import (
+    ARRAY,
+    DECIMAL,
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
+from app.core.database import Base
+from app.models.base import AuditMixin
 
 
 class Document(Base, AuditMixin):

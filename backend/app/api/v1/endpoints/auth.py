@@ -2,17 +2,20 @@
 Authentication endpoints
 """
 # Local application imports
-from app.core.database import get_db
-from app.core.security import (create_access_token, create_refresh_token,
-                               verify_password)
-from app.models.user import User
-from app.schemas.auth import (LoginRequest, LoginResponse, RegisterRequest,
-                              RegisterResponse, TokenRefreshRequest, TokenResponse)
-from app.schemas.user import UserResponse
 # Third-party imports
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+from app.core.security import create_access_token, create_refresh_token, verify_password
+from app.models.user import User
+from app.schemas.auth import (
+    LoginRequest,
+    LoginResponse,
+)
+from app.schemas.user import UserResponse
+
 
 router = APIRouter()
 

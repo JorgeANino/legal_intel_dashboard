@@ -5,17 +5,19 @@ Document processing Celery tasks with retry logic
 import asyncio
 from datetime import date, datetime
 
-# Local application imports
-from app.core.websocket_manager import notify_document_update
+# Third-party imports
+from sqlalchemy import select
+
 from app.core.celery_app import celery_app
 from app.core.database import AsyncSessionLocal, engine
 from app.core.logging_config import logger
+
+# Local application imports
+from app.core.websocket_manager import notify_document_update
 from app.models.document import Document, DocumentChunk, DocumentMetadata
 from app.services.document_parser import DocumentParser
 from app.services.embedding_service import EmbeddingService
 from app.services.metadata_extractor import MetadataExtractor
-# Third-party imports
-from sqlalchemy import select
 
 
 def parse_date(date_str: str | None) -> date | None:
@@ -68,7 +70,7 @@ def process_document_task(self, document_id: int):
     """
     try:
         logger.info("Starting document processing", extra={"document_id": document_id})
-        
+
         # Create a fresh event loop for this task to avoid loop conflicts
         # in Celery's fork pool workers
         loop = asyncio.new_event_loop()
@@ -79,11 +81,11 @@ def process_document_task(self, document_id: int):
             # Dispose of the connection pool to prevent event loop conflicts
             # This ensures connections don't get reused across different event loops
             loop.run_until_complete(engine.dispose())
-            
+
             # Clean up the loop to prevent resource leaks
             loop.close()
             asyncio.set_event_loop(None)
-        
+
         logger.info("Document processing completed", extra={"document_id": document_id})
     except Exception as exc:
         logger.error(

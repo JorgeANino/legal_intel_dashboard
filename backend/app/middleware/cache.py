@@ -6,10 +6,11 @@ import hashlib
 import json
 from typing import Any
 
-# Local application imports
-from app.core.config import settings
 # Third-party imports
 from redis import asyncio as aioredis
+
+# Local application imports
+from app.core.config import settings
 
 
 class CacheService:
