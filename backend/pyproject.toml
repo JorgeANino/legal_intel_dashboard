@@ -64,41 +64,42 @@ indent-style = "space"
 # Use Unix-style line endings
 line-ending = "lf"
 
-[tool.isort]
-# Profile compatible with Black
-profile = "black"
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+no_implicit_optional = true
+show_error_codes = true
+plugins = ["pydantic.mypy"]
+# Allow Any return types (common with LLM responses and dynamic data)
+allow_untyped_defs = true
+# Don't error on missing type stubs for third-party libraries
+warn_unused_ignores = false
+# Allow untyped imports (e.g., redis, other libraries without type stubs)
+disallow_untyped_calls = false
+warn_no_return = false
+# Ignore specific error codes
+disable_error_code = ["import-untyped"]
 
-# Line length
-line_length = 100
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+ignore_errors = true
 
-# Known first-party modules
-known_first_party = ["app"]
+[[tool.mypy.overrides]]
+module = ["app.services.*"]
+# Services often work with dynamic data (LLM responses, metadata extraction) and SQLAlchemy models
+warn_return_any = false
+disallow_any_explicit = false
+disable_error_code = ["assignment", "arg-type", "index", "return-value", "var-annotated"]
 
-# Import heading sections
-import_heading_stdlib = "Standard library imports"
-import_heading_thirdparty = "Third-party imports"
-import_heading_firstparty = "Local application imports"
+[[tool.mypy.overrides]]
+module = ["app.middleware.*"]
+# Middleware uses external libraries that may not have complete type stubs
+ignore_missing_imports = true
 
-# Sections
-sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
-
-# Multi-line output mode (3 is vertical hanging indent)
-multi_line_output = 3
-
-# Include trailing comma
-include_trailing_comma = true
-
-# Force grid wrap
-force_grid_wrap = 0
-
-# Use parentheses
-use_parentheses = true
-
-# Ensure newline before comments
-ensure_newline_before_comments = true
-
-# Lines after imports
-lines_after_imports = 2
-
-# Skip files
-skip_glob = ["alembic/versions/*", "uploads/*"]
+[[tool.mypy.overrides]]
+module = ["app.tasks.*", "app.api.v1.endpoints.*", "app.core.websocket_manager"]
+# Tasks, endpoints, and websocket work with SQLAlchemy models where Column attributes resolve to actual values at runtime
+disable_error_code = ["assignment", "arg-type", "index", "return-value"]

@@ -3,6 +3,7 @@ Health check and monitoring endpoints
 """
 # Standard library imports
 from datetime import datetime
+from typing import Any
 
 # Third-party imports
 from fastapi import APIRouter, Depends
@@ -28,7 +29,11 @@ async def health_check(db: AsyncSession = Depends(get_db)):
     - Database connectivity
     - Redis connectivity
     """
-    health_status = {"status": "healthy", "timestamp": datetime.utcnow().isoformat(), "checks": {}}
+    health_status: dict[str, Any] = {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "checks": {},
+    }
 
     # Check database
     try:
@@ -62,6 +67,7 @@ async def get_metrics(db: AsyncSession = Depends(get_db)):
     - Error rates
     """
     try:
+        # Third-party imports
         # Third-party imports
         # Local application imports
         from sqlalchemy import func, select

@@ -112,6 +112,7 @@ async def get_current_user_from_token(token: str, db: AsyncSession):
         HTTPException: 401 if token is invalid or user not found
     """
     # Import here to avoid circular dependency
+    # Local application imports
     from app.models.user import User
 
     credentials_exception = HTTPException(
@@ -126,9 +127,14 @@ async def get_current_user_from_token(token: str, db: AsyncSession):
         if payload is None:
             raise credentials_exception
 
-        # Extract user_id from token
-        user_id: int = payload.get("sub")
-        if user_id is None:
+        # Extract user_id from token and convert to int
+        user_id_raw = payload.get("sub")
+        if user_id_raw is None:
+            raise credentials_exception
+
+        try:
+            user_id: int = int(user_id_raw)
+        except (ValueError, TypeError):
             raise credentials_exception
 
         # Get user from database
@@ -166,6 +172,7 @@ async def get_current_user(
         HTTPException: 401 if token is invalid or user not found
     """
     # Import here to avoid circular dependency
+    # Local application imports
     from app.core.database import AsyncSessionLocal
     from app.models.user import User
 

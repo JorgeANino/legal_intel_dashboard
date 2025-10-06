@@ -8,11 +8,10 @@ from datetime import date, datetime
 # Third-party imports
 from sqlalchemy import select
 
+# Local application imports
 from app.core.celery_app import celery_app
 from app.core.database import AsyncSessionLocal, engine
 from app.core.logging_config import logger
-
-# Local application imports
 from app.core.websocket_manager import notify_document_update
 from app.models.document import Document, DocumentChunk, DocumentMetadata
 from app.services.document_parser import DocumentParser

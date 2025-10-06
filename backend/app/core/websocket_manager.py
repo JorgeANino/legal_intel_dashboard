@@ -17,9 +17,9 @@ class ConnectionManager:
     Manages WebSocket connections and Redis pub/sub for real-time updates
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.active_connections: dict[int, set[WebSocket]] = {}
-        self.redis_client: aioredis.Redis = None
+        self.redis_client: aioredis.Redis | None = None
 
     async def connect(self, websocket: WebSocket, user_id: int) -> None:
         """
@@ -117,7 +117,7 @@ connection_manager = ConnectionManager()
 
 
 async def notify_document_update(
-    document_id: int, user_id: int, processed: bool, error: str = None
+    document_id: int, user_id: int, processed: bool, error: str | None = None
 ) -> None:
     """
     Publish document status update to Redis pub/sub

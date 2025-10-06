@@ -71,10 +71,10 @@ class DocumentMetadata(Base, AuditMixin):
     jurisdiction = Column(String(100))
     geography = Column(String(100))
     industry = Column(String(100), index=True)
-    parties = Column(ARRAY(String), nullable=True)
+    parties: Column[list[str] | None] = Column(ARRAY(String), nullable=True)
     effective_date = Column(Date, nullable=True)
     expiration_date = Column(Date, nullable=True)
-    contract_value = Column(DECIMAL(15, 2), nullable=True)
+    contract_value: Column[float | None] = Column(DECIMAL(15, 2), nullable=True)
     currency = Column(String(10), nullable=True)
     key_terms = Column(JSONB, nullable=True)
     confidence_score = Column(Float)
@@ -98,7 +98,7 @@ class DocumentChunk(Base, AuditMixin):
     chunk_text = Column(Text, nullable=False)
     chunk_size = Column(Integer)
     # Vector embedding for semantic search (1536 dimensions for OpenAI text-embedding-3-small)
-    embedding = Column(ARRAY(Float), nullable=True)
+    embedding: Column[list[float] | None] = Column(ARRAY(Float), nullable=True)
     chunk_metadata = Column(JSONB, nullable=True)
 
     # Relationships

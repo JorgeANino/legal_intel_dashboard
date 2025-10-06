@@ -1,10 +1,10 @@
 """
 Authentication-related Pydantic schemas
 """
+# Local application imports
 # Third-party imports
 from pydantic import BaseModel, EmailStr
 
-# Local application imports
 from app.schemas.user import UserResponse
 
 

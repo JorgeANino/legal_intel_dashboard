@@ -71,7 +71,7 @@ class RequestLogger:
                 "path": request.url.path,
                 "status_code": response.status_code,
                 "process_time_ms": round(process_time * 1000, 2),
-                "client_ip": request.client.host,
+                "client_ip": request.client.host if request.client else "unknown",
                 "timestamp": datetime.utcnow().isoformat(),
             },
         )

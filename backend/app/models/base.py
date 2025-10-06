@@ -30,12 +30,13 @@ class AuditMixin:
         Args:
             deleted_by: User ID who is performing the deletion
         """
-        from sqlalchemy.sql import func
+        # Standard library imports
+        from datetime import datetime
 
-        self.deleted_at = func.now()
-        self.deleted_by = deleted_by
+        self.deleted_at = datetime.now()  # type: ignore[assignment]
+        self.deleted_by = deleted_by  # type: ignore[assignment]
 
     def restore(self) -> None:
         """Restore a soft deleted record"""
-        self.deleted_at = None
-        self.deleted_by = None
+        self.deleted_at = None  # type: ignore[assignment]
+        self.deleted_by = None  # type: ignore[assignment]

@@ -174,7 +174,7 @@ A: {{"fields_needed": ["geography"], "filters": {{"geography": "Middle East"}}, 
         """Simple rule-based query analysis"""
         question_lower = question.lower()
 
-        analysis = {
+        analysis: dict[str, Any] = {
             "fields_needed": [],
             "filters": {},
             "return_fields": [
@@ -406,10 +406,10 @@ A: {{"fields_needed": ["geography"], "filters": {{"geography": "Middle East"}}, 
         - Popular query patterns
         - Legal terminology
         """
-        suggestions = []
-        popular_queries = []
-        legal_terms = []
-        metadata_suggestions = {
+        suggestions: list[str] = []
+        popular_queries: list[str] = []
+        legal_terms: list[str] = []
+        metadata_suggestions: dict[str, list[str]] = {
             "agreement_types": [],
             "jurisdictions": [],
             "industries": [],

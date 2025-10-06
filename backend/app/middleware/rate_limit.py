@@ -81,7 +81,7 @@ async def rate_limit_dependency(request: Request) -> None:
         >>>     return {"status": "ok"}
     """
     # Use user_id if authenticated, otherwise IP
-    client_ip = request.client.host
+    client_ip = request.client.host if request.client else "unknown"
     identifier = f"ip:{client_ip}"
 
     # Different limits for different endpoints

@@ -66,6 +66,8 @@ class DocumentService:
             >>> print(f"Document saved: {doc.id}")
         """
         # Validate file
+        if not file.filename:
+            raise ValueError("File must have a filename")
         file_ext = Path(file.filename).suffix.lower()
         if file_ext not in self.ALLOWED_EXTENSIONS:
             raise ValueError(f"Invalid file type. Allowed: {self.ALLOWED_EXTENSIONS}")

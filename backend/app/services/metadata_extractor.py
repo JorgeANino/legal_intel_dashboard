@@ -105,7 +105,7 @@ Set confidence_score between 0.0 and 1.0 based on how certain you are about the 
     def _extract_with_rules(self, text: str, filename: str) -> dict[str, Any]:
         """Rule-based metadata extraction (fallback/mock)"""
 
-        metadata = {
+        metadata: dict[str, Any] = {
             "agreement_type": None,
             "governing_law": None,
             "jurisdiction": None,

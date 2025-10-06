@@ -92,12 +92,12 @@ class ExportService:
         output = io.StringIO()
 
         # Get all possible headers
-        headers = {"document", "document_id"}
+        headers_set = {"document", "document_id"}
         for result in results:
             if "metadata" in result:
-                headers.update(result["metadata"].keys())
+                headers_set.update(result["metadata"].keys())
 
-        headers = sorted(headers)
+        headers = sorted(headers_set)
         writer = csv.DictWriter(output, fieldnames=headers)
         writer.writeheader()
 

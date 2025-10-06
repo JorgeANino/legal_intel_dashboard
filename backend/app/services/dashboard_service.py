@@ -63,10 +63,10 @@ class DashboardService:
         all_metadata = metadata_result.scalars().all()
 
         # Aggregate metadata
-        agreement_types = Counter()
-        jurisdictions = Counter()
-        industries = Counter()
-        geographies = Counter()
+        agreement_types: Counter[str] = Counter()
+        jurisdictions: Counter[str] = Counter()
+        industries: Counter[str] = Counter()
+        geographies: Counter[str] = Counter()
 
         for metadata in all_metadata:
             if metadata.agreement_type:

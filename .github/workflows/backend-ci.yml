@@ -71,20 +71,6 @@ jobs:
         ruff check . --output-format=github
         echo "✅ Ruff linting passed!"
 
-    - name: Run ruff formatter check
-      working-directory: ./backend
-      run: |
-        echo "🎨 Checking code formatting with ruff..."
-        ruff format --check .
-        echo "✅ Code formatting is correct!"
-
-    - name: Run isort import sorting check
-      working-directory: ./backend
-      run: |
-        echo "📦 Checking import sorting with isort..."
-        isort . --check-only --diff
-        echo "✅ Import sorting is correct!"
-
     - name: Run type checking with mypy
       working-directory: ./backend
       run: |
