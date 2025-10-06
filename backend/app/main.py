@@ -30,12 +30,12 @@ async def lifespan(app: FastAPI):
     Lifespan context manager for startup and shutdown events
     """
     # Startup
-    logger.info("🚀 Starting up Legal Intel Dashboard API...")
+    logger.info("Starting up Legal Intel Dashboard API...")
 
     yield
 
     # Shutdown
-    logger.info("🛑 Shutting down Legal Intel Dashboard API...")
+    logger.info("Shutting down Legal Intel Dashboard API...")
 
 
 # Initialize Sentry for error tracking (if available and configured)

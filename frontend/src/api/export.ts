@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { QueryResponse, DashboardStats, QueryFilters } from './types';
+import { QueryFilters } from './types';
 
 export interface ExportRequest {
   question: string;

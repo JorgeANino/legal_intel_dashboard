@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import { useState, FormEvent } from 'react';
+
+import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('test@example.com');
@@ -23,8 +24,9 @@ export default function LoginPage() {
 
     try {
       await login({ email, password });
-    } catch (error) {
       // Error is handled in AuthContext with toast
+    } catch {
+      // Catch block required but error handled in AuthContext
     } finally {
       setIsSubmitting(false);
     }

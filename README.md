@@ -146,13 +146,102 @@ The application includes a pre-configured test user:
 
 ### Running Tests
 
+#### Backend Tests
+
+The backend includes comprehensive pytest tests for API endpoints, authentication, and document processing.
+
 ```bash
-# Backend tests
+# Run all tests
 docker-compose exec backend pytest
 
-# Frontend tests
-docker-compose exec frontend npm test
+# Run tests with coverage report
+docker-compose exec backend pytest --cov=app --cov-report=html
+
+# Run tests with verbose output
+docker-compose exec backend pytest -v
+
+# Run specific test file
+docker-compose exec backend pytest tests/test_auth.py
+
+# Run specific test function
+docker-compose exec backend pytest tests/test_auth.py::test_login
+
+# Run tests matching a pattern
+docker-compose exec backend pytest -k "auth"
+
+# Run tests in parallel (faster)
+docker-compose exec backend pytest -n auto
 ```
+
+**Coverage Report**: After running with `--cov-report=html`, open `backend/htmlcov/index.html` in your browser.
+
+#### Frontend Tests
+
+The frontend uses Jest and React Testing Library for component and integration tests.
+
+```bash
+# Run all tests (inside Docker)
+docker-compose exec frontend npm test
+
+# Run tests in watch mode (for development)
+docker-compose exec frontend npm run test:watch
+
+# Run tests with coverage report
+docker-compose exec frontend npm run test:coverage
+
+# Run tests locally (outside Docker)
+cd frontend
+npm install  # First time only
+npm test
+```
+
+**Test Files**: All test files follow the pattern `*.test.tsx` or `*.test.ts`
+
+**Coverage Report**: After running with coverage, open `frontend/coverage/lcov-report/index.html` in your browser.
+
+#### Running Tests Locally (Without Docker)
+
+**Backend:**
+```bash
+cd backend
+
+# Create virtual environment (first time only)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies (first time only)
+pip install -r requirements.txt
+
+# Set environment variables
+export DATABASE_URL="postgresql+asyncpg://postgres:postgres@localhost:5432/legal_intel_test"
+export REDIS_URL="redis://localhost:6379/1"
+
+# Run tests
+pytest
+```
+
+**Frontend:**
+```bash
+cd frontend
+
+# Install dependencies (first time only)
+npm install
+
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+#### Test Configuration
+
+- **Backend**: Configuration in `backend/pytest.ini`
+- **Frontend**: Configuration in `frontend/jest.config.js`
+- **Jest Setup**: `frontend/jest.setup.js` (includes testing-library/jest-dom)
 
 ### Viewing Logs
 

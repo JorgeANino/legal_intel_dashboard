@@ -1,10 +1,11 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import DashboardPage from './page';
+import { fireEvent, render, screen } from '@testing-library/react';
+
+import AuthGuard from '@/guards/AuthGuard';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useExport } from '@/hooks/useExport';
-import AuthGuard from '@/guards/AuthGuard';
+
+import DashboardPage from './page';
 
 // Mock the hooks
 jest.mock('@/hooks/useDashboard');
@@ -68,6 +69,8 @@ const createTestWrapper = () => {
 
 describe('DashboardPage', () => {
   const mockExportDashboardReport = jest.fn();
+  const mockExportToCSV = jest.fn();
+  const mockExportToPDF = jest.fn();
   const mockRefetch = jest.fn();
 
   beforeEach(() => {
@@ -85,6 +88,8 @@ describe('DashboardPage', () => {
     });
 
     mockUseExport.mockReturnValue({
+      exportToCSV: mockExportToCSV,
+      exportToPDF: mockExportToPDF,
       exportDashboardReport: mockExportDashboardReport,
       isExporting: false,
     });
@@ -179,6 +184,8 @@ describe('DashboardPage', () => {
 
   it('disables export button when exporting', () => {
     mockUseExport.mockReturnValue({
+      exportToCSV: mockExportToCSV,
+      exportToPDF: mockExportToPDF,
       exportDashboardReport: mockExportDashboardReport,
       isExporting: true,
     });

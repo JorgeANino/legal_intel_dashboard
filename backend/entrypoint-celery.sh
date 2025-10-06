@@ -26,7 +26,7 @@ if [ -d "/home/appuser/.cache" ]; then
     echo "✓ Cache directory permissions fixed"
 fi
 
-echo "🔄 Starting Celery worker..."
+echo "Starting Celery worker..."
 
 # Start Celery worker
 exec celery -A app.core.celery_app worker --loglevel=info --concurrency=2

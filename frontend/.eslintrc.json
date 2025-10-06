@@ -39,8 +39,9 @@
     
     // TypeScript rules
     "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/prefer-optional-chain": "error",
-    "@typescript-eslint/prefer-nullish-coalescing": "error",
+    // Disabled because they require type information which slows down linting
+    // "@typescript-eslint/prefer-optional-chain": "error",
+    // "@typescript-eslint/prefer-nullish-coalescing": "error",
     
     // Next.js specific rules
     "@next/next/no-img-element": "error",
@@ -51,7 +52,8 @@
       "files": ["*.test.ts", "*.test.tsx", "*.spec.ts", "*.spec.tsx"],
       "rules": {
         "no-console": "off",
-        "@typescript-eslint/no-explicit-any": "off"
+        "@typescript-eslint/no-explicit-any": "off",
+        "react/display-name": "off"
       }
     }
   ]

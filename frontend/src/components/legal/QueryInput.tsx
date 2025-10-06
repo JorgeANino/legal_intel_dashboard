@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, FormEvent, useEffect, useRef } from 'react';
+
+import { useDebounce } from '@/hooks/useDebounce';
 import { useDocumentQuery } from '@/hooks/useDocumentQuery';
 import { useQuerySuggestions } from '@/hooks/useQuerySuggestions';
-import { useDebounce } from '@/hooks/useDebounce';
 
 const EXAMPLE_QUERIES = [
   'Which agreements are governed by UAE law?',

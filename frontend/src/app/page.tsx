@@ -1,13 +1,13 @@
 'use client';
 
-import { useDashboard } from '@/hooks/useDashboard';
-import { useExport } from '@/hooks/useExport';
-import { StatsCards } from '@/components/legal/StatsCards';
 import { AgreementTypesChart } from '@/components/legal/AgreementTypesChart';
 import { JurisdictionChart } from '@/components/legal/JurisdictionChart';
-import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
+import { StatsCards } from '@/components/legal/StatsCards';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
 import AuthGuard from '@/guards/AuthGuard';
+import { useDashboard } from '@/hooks/useDashboard';
+import { useExport } from '@/hooks/useExport';
 
 export default function DashboardPage() {
   const { stats, isLoading, error, refetch } = useDashboard();

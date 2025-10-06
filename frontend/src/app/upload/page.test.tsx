@@ -1,8 +1,11 @@
-import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import UploadPage from './page';
-import { useDocuments } from '@/hooks/useDocuments';
+import { render, screen } from '@testing-library/react';
+
 import AuthGuard from '@/guards/AuthGuard';
+import { useDocuments } from '@/hooks/useDocuments';
+
+import UploadPage from './page';
+
 
 // Mock the hooks and components
 jest.mock('@/hooks/useDocuments');

@@ -1,12 +1,17 @@
+'use client';
+
 import { useState } from 'react';
+import toast from 'react-hot-toast';
+
 import { exportApi, ExportRequest, DashboardExportRequest } from '@/api/export';
 import { QueryResponse, DashboardStats } from '@/api/types';
-import toast from 'react-hot-toast';
 
 export const useExport = () => {
   const [isExporting, setIsExporting] = useState(false);
 
   const downloadFile = (blob: Blob, filename: string) => {
+    if (typeof window === 'undefined') return;
+    
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -65,7 +70,7 @@ export const useExport = () => {
     }
   };
 
-  const exportDashboardReport = async (stats: DashboardStats) => {
+  const exportDashboardReport = async (_stats: DashboardStats) => {
     setIsExporting(true);
     try {
       const request: DashboardExportRequest = {

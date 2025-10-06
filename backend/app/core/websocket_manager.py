@@ -34,7 +34,7 @@ class ConnectionManager:
         if user_id not in self.active_connections:
             self.active_connections[user_id] = set()
         self.active_connections[user_id].add(websocket)
-        print(f"✅ WebSocket connected for user {user_id}")
+        print(f"WebSocket connected for user {user_id}")
 
     def disconnect(self, websocket: WebSocket, user_id: int) -> None:
         """
@@ -48,7 +48,7 @@ class ConnectionManager:
             self.active_connections[user_id].discard(websocket)
             if not self.active_connections[user_id]:
                 del self.active_connections[user_id]
-        print(f"❌ WebSocket disconnected for user {user_id}")
+        print(f"WebSocket disconnected for user {user_id}")
 
     async def send_to_user(self, user_id: int, message: dict) -> None:
         """
@@ -148,7 +148,7 @@ async def notify_document_update(
         await redis.publish(channel, json.dumps(message))
         await redis.close()
 
-        print(f"📤 Published update for document {document_id} to channel {channel}")
+        print(f"Published update for document {document_id} to channel {channel}")
 
     except Exception as e:
         print(f"Error publishing to Redis: {e}")

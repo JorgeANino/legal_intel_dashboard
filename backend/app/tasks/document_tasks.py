@@ -8,7 +8,7 @@ from datetime import date, datetime
 # Local application imports
 from app.core.websocket_manager import notify_document_update
 from app.core.celery_app import celery_app
-from app.core.database import AsyncSessionLocal
+from app.core.database import AsyncSessionLocal, engine
 from app.core.logging_config import logger
 from app.models.document import Document, DocumentChunk, DocumentMetadata
 from app.services.document_parser import DocumentParser
@@ -68,7 +68,22 @@ def process_document_task(self, document_id: int):
     """
     try:
         logger.info("Starting document processing", extra={"document_id": document_id})
-        asyncio.run(_process_document(document_id))
+        
+        # Create a fresh event loop for this task to avoid loop conflicts
+        # in Celery's fork pool workers
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(_process_document(document_id))
+        finally:
+            # Dispose of the connection pool to prevent event loop conflicts
+            # This ensures connections don't get reused across different event loops
+            loop.run_until_complete(engine.dispose())
+            
+            # Clean up the loop to prevent resource leaks
+            loop.close()
+            asyncio.set_event_loop(None)
+        
         logger.info("Document processing completed", extra={"document_id": document_id})
     except Exception as exc:
         logger.error(
@@ -152,26 +167,26 @@ async def _process_document(document_id: int):
                             db.add(chunk)
 
                         print(
-                            f"✅ Generated {len(embeddings)} embeddings for document {document_id}"
+                            f"Generated {len(embeddings)} embeddings for document {document_id}"
                         )
                 except Exception as e:
-                    print(f"⚠️  Warning: Failed to generate embeddings: {e}")
+                    print(f"Warning: Failed to generate embeddings: {e}")
                     # Don't fail the entire task if embeddings fail
             else:
-                print("ℹ️  Embeddings not available (no API key)")
+                print("INFO: Embeddings not available (no API key)")
 
             # Mark as processed
             document.processed = True
 
             await db.commit()
 
-            print(f"✅ Successfully processed document {document_id}")
+            print(f"Successfully processed document {document_id}")
 
             # Notify WebSocket clients
             await notify_document_update(document_id, document.user_id, processed=True)
 
         except Exception as e:
-            print(f"❌ Error processing document {document_id}: {e}")
+            print(f"ERROR: Error processing document {document_id}: {e}")
             await db.rollback()  # Rollback failed transaction
 
             # Save error state in a new transaction
@@ -193,7 +208,7 @@ async def _process_document(document_id: int):
                         document_id, user_id_for_notification, processed=False, error=str(e)
                     )
             except Exception as commit_error:
-                print(f"⚠️  Could not save error state: {commit_error}")
+                print(f"WARNING: Could not save error state: {commit_error}")
                 await db.rollback()
 
             raise

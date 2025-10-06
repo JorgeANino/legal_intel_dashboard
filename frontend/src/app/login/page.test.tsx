@@ -1,8 +1,10 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
-import LoginPage from './page';
+
 import { useAuth } from '@/hooks/useAuth';
+
+import LoginPage from './page';
 
 // Mock the hooks
 jest.mock('@/hooks/useAuth');

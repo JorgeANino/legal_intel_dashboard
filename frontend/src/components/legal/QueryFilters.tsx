@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+
 import { QueryFilters as QueryFiltersType } from '@/api/types';
 
 interface Props {

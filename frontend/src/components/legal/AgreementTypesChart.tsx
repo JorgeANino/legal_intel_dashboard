@@ -1,7 +1,8 @@
 'use client';
 
-import { DashboardStats } from '@/api/types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
+import { DashboardStats } from '@/api/types';
 
 interface Props {
   stats: DashboardStats;

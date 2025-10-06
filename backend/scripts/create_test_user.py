@@ -44,29 +44,29 @@ async def create_test_user():
         await session.commit()
         await session.refresh(test_user)
 
-        print("✅ Created test user:")
+        print("Created test user:")
         print(f"   ID: {test_user.id}")
         print(f"   Email: {test_user.email}")
         print("   Password: testpassword123")
         print(f"   Full Name: {test_user.full_name}")
         print()
-        print("🔐 Login credentials for frontend:")
+        print("Login credentials for frontend:")
         print("   Email: test@example.com")
         print("   Password: testpassword123")
 
 
 async def main():
     """Main function"""
-    print("🔧 Creating test user for development...")
+    print("Creating test user for development...")
     print()
 
     try:
         await create_test_user()
         print()
-        print("✅ Test user setup complete!")
+        print("Test user setup complete!")
 
     except Exception as e:
-        print(f"❌ Error creating test user: {e}")
+        print(f"ERROR: Error creating test user: {e}")
         raise
 
 

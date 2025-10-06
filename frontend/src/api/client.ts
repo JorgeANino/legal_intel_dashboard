@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosInstance } from 'axios';
 
 // API base configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
@@ -25,11 +25,11 @@ apiClient.interceptors.request.use(
     //   config.headers.Authorization = `Bearer ${token}`;
     // }
     
-    console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error) => {
-    console.error('❌ Request Error:', error);
+    console.error('Request Error:', error);
     return Promise.reject(error);
   }
 );
@@ -38,12 +38,12 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => {
     const duration = Date.now() - (response.config.metadata?.startTime || 0);
-    console.log(`✅ API Response: ${response.config.url} (${duration}ms)`);
+    console.log(`API Response: ${response.config.url} (${duration}ms)`);
     return response;
   },
   async (error: AxiosError) => {
     const duration = Date.now() - (error.config?.metadata?.startTime || 0);
-    console.error(`❌ API Error: ${error.config?.url} (${duration}ms)`, error.response?.data);
+    console.error(`API Error: ${error.config?.url} (${duration}ms)`, error.response?.data);
     
     // Handle specific error codes
     if (error.response?.status === 429) {

@@ -2,8 +2,8 @@
 
 import { QueryInput } from '@/components/legal/QueryInput';
 import { ResultsTable } from '@/components/legal/ResultsTable';
-import { useDocumentQuery } from '@/hooks/useDocumentQuery';
 import AuthGuard from '@/guards/AuthGuard';
+import { useDocumentQuery } from '@/hooks/useDocumentQuery';
 
 export default function QueryPage() {
   const { 

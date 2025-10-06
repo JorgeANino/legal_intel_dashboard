@@ -1,9 +1,10 @@
 'use client';
 
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { authApi, User, LoginCredentials } from '@/api/auth';
 import { useRouter } from 'next/navigation';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import toast from 'react-hot-toast';
+
+import { authApi, User, LoginCredentials } from '@/api/auth';
 
 interface AuthContextType {
   user: User | null;

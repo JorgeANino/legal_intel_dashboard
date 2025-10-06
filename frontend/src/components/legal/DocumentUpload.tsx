@@ -2,7 +2,9 @@
 
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+
 import { useDocuments } from '@/hooks/useDocuments';
+
 import { ErrorDisplay } from '../ui/ErrorDisplay';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB

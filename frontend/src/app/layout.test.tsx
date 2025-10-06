@@ -1,7 +1,10 @@
-import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import RootLayout from './layout';
+import { render, screen } from '@testing-library/react';
+
 import { useWebSocket } from '@/hooks/useWebSocket';
+
+import RootLayout from './layout';
+
 
 // Mock the hooks and components
 jest.mock('@/hooks/useWebSocket');
@@ -38,12 +41,15 @@ const createTestWrapper = () => {
 };
 
 describe('RootLayout', () => {
+  const mockReconnect = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
     
     // Default mock implementation
     mockUseWebSocket.mockReturnValue({
       isConnected: true,
+      reconnect: mockReconnect,
     });
   });
 
@@ -112,6 +118,7 @@ describe('RootLayout', () => {
   it('shows reconnection indicator when WebSocket is disconnected', () => {
     mockUseWebSocket.mockReturnValue({
       isConnected: false,
+      reconnect: mockReconnect,
     });
 
     render(
@@ -121,12 +128,13 @@ describe('RootLayout', () => {
       { wrapper: createTestWrapper() }
     );
 
-    expect(screen.getByText('⚠️ Reconnecting...')).toBeInTheDocument();
+    expect(screen.getByText('Reconnecting...')).toBeInTheDocument();
   });
 
   it('does not show reconnection indicator when WebSocket is connected', () => {
     mockUseWebSocket.mockReturnValue({
       isConnected: true,
+      reconnect: mockReconnect,
     });
 
     render(
@@ -136,7 +144,7 @@ describe('RootLayout', () => {
       { wrapper: createTestWrapper() }
     );
 
-    expect(screen.queryByText('⚠️ Reconnecting...')).not.toBeInTheDocument();
+    expect(screen.queryByText('Reconnecting...')).not.toBeInTheDocument();
   });
 
   it('positions toaster in top-right', () => {
@@ -222,6 +230,7 @@ describe('RootLayout', () => {
   it('renders WebSocket reconnection indicator with correct styling', () => {
     mockUseWebSocket.mockReturnValue({
       isConnected: false,
+      reconnect: mockReconnect,
     });
 
     render(
@@ -231,7 +240,7 @@ describe('RootLayout', () => {
       { wrapper: createTestWrapper() }
     );
 
-    const reconnectionIndicator = screen.getByText('⚠️ Reconnecting...');
+    const reconnectionIndicator = screen.getByText('Reconnecting...');
     expect(reconnectionIndicator).toHaveClass(
       'fixed',
       'bottom-4',
@@ -255,11 +264,12 @@ describe('RootLayout', () => {
     );
 
     // Initially connected
-    expect(screen.queryByText('⚠️ Reconnecting...')).not.toBeInTheDocument();
+    expect(screen.queryByText('Reconnecting...')).not.toBeInTheDocument();
 
     // Change to disconnected
     mockUseWebSocket.mockReturnValue({
       isConnected: false,
+      reconnect: mockReconnect,
     });
 
     rerender(
@@ -268,6 +278,6 @@ describe('RootLayout', () => {
       </RootLayout>
     );
 
-    expect(screen.getByText('⚠️ Reconnecting...')).toBeInTheDocument();
+    expect(screen.getByText('Reconnecting...')).toBeInTheDocument();
   });
 });

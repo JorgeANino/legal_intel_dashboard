@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Navigation() {
@@ -9,9 +10,9 @@ export default function Navigation() {
   const { user, logout } = useAuth();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: '📊' },
-    { name: 'Upload', href: '/upload', icon: '📤' },
-    { name: 'Query', href: '/query', icon: '🔍' },
+    { name: 'Dashboard', href: '/' },
+    { name: 'Upload', href: '/upload' },
+    { name: 'Query', href: '/query' },
   ];
 
   return (
@@ -50,7 +51,6 @@ export default function Navigation() {
                         : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                     }`}
                   >
-                    <span className="mr-2">{item.icon}</span>
                     {item.name}
                   </Link>
                 );

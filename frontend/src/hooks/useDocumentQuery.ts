@@ -1,8 +1,11 @@
+'use client';
+
 import { useMutation } from '@tanstack/react-query';
-import { queryApi } from '@/api/query';
-import { QueryRequest, QueryResponse, QueryFilters } from '@/api/types';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+
+import { queryApi } from '@/api/query';
+import { QueryRequest, QueryResponse, QueryFilters } from '@/api/types';
 
 export const useDocumentQuery = () => {
   const [queryHistory, setQueryHistory] = useState<QueryResponse[]>([]);
@@ -22,7 +25,7 @@ export const useDocumentQuery = () => {
       setQueryHistory((prev) => [data, ...prev].slice(0, 10)); // Keep last 10
       
       if (data.total_results === 0) {
-        toast('No documents match your query', { icon: 'ℹ️' });
+        toast('No documents match your query');
       }
     },
     onError: (error: any) => {

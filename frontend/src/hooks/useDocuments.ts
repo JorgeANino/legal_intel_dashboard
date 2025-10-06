@@ -1,7 +1,10 @@
+'use client';
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { documentsApi } from '@/api/documents';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+
+import { documentsApi } from '@/api/documents';
 
 export const useDocuments = () => {
   const queryClient = useQueryClient();

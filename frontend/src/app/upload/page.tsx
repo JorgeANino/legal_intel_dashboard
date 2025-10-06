@@ -1,9 +1,9 @@
 'use client';
 
 import { DocumentUpload } from '@/components/legal/DocumentUpload';
-import { useDocuments } from '@/hooks/useDocuments';
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
 import AuthGuard from '@/guards/AuthGuard';
+import { useDocuments } from '@/hooks/useDocuments';
 
 export default function UploadPage() {
   const { documents, isLoading } = useDocuments();

@@ -49,9 +49,9 @@ async def upload_documents(
             document = await service.save_uploaded_file(file, user_id, db)
 
             # Trigger async processing
-            print(f"📤 Dispatching Celery task for document {document.id}")
+            print(f"Dispatching Celery task for document {document.id}")
             task_result = process_document_task.delay(document.id)
-            print(f"✅ Task dispatched: {task_result.id} for document {document.id}")
+            print(f"Task dispatched: {task_result.id} for document {document.id}")
 
             results.append(
                 DocumentUploadResponse(
@@ -64,7 +64,7 @@ async def upload_documents(
             successful += 1
 
         except Exception as e:
-            print(f"❌ Error in upload: {e}")
+            print(f"ERROR: Error in upload: {e}")
             traceback.print_exc()
             results.append(
                 DocumentUploadResponse(

@@ -1,5 +1,7 @@
-import { useEffect, useRef, useCallback } from 'react';
+'use client';
+
 import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef, useCallback, useState } from 'react';
 
 interface DocumentUpdate {
   type: 'document_update';
@@ -17,41 +19,58 @@ export const useWebSocket = (userId: number = 1) => {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const queryClient = useQueryClient();
-  const isConnecting = useRef(false);
+  const isConnectingRef = useRef(false);
+  const isMountedRef = useRef(false);
+  const [isConnected, setIsConnected] = useState(false);
 
   const connect = useCallback(() => {
-    if (isConnecting.current || wsRef.current?.readyState === WebSocket.OPEN) {
+    // Only run in browser and when mounted
+    if (typeof window === 'undefined' || !isMountedRef.current) return;
+    
+    // Prevent duplicate connections
+    if (isConnectingRef.current || wsRef.current?.readyState === WebSocket.OPEN) {
       return;
     }
 
-    isConnecting.current = true;
+    isConnectingRef.current = true;
 
     try {
       // Determine WebSocket URL based on environment
       const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsHost = process.env.NEXT_PUBLIC_API_URL?.replace(/^https?:\/\//, '') || 'localhost:8000';
+      // Extract base host from API_URL (remove protocol and any path segments)
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+      const wsHost = apiUrl.replace(/^https?:\/\//, '').split('/')[0];
       const wsUrl = `${wsProtocol}//${wsHost}/api/v1/ws/${userId}`;
 
-      console.log(`🔌 Connecting to WebSocket: ${wsUrl}`);
+      console.log(`Connecting to WebSocket: ${wsUrl}`);
 
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
-        console.log('✅ WebSocket connected');
-        isConnecting.current = false;
+        if (!isMountedRef.current) {
+          ws.close(1000);
+          return;
+        }
+        
+        console.log('WebSocket connected');
+        isConnectingRef.current = false;
+        setIsConnected(true);
         
         // Clear any pending reconnection attempts
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
+          reconnectTimeoutRef.current = undefined;
         }
       };
 
       ws.onmessage = (event) => {
+        if (!isMountedRef.current) return;
+        
         try {
           const data: DocumentUpdate = JSON.parse(event.data);
           
           if (data.type === 'document_update') {
-            console.log(`📬 Document ${data.document_id} update:`, data.status);
+            console.log(`Document ${data.document_id} update:`, data.status);
 
             // Update React Query cache with new status
             queryClient.setQueryData(['documents'], (oldData: any) => {
@@ -77,18 +96,25 @@ export const useWebSocket = (userId: number = 1) => {
       };
 
       ws.onerror = (error) => {
-        console.error('❌ WebSocket error:', error);
-        isConnecting.current = false;
+        console.error('WebSocket error:', error);
+        isConnectingRef.current = false;
+        if (isMountedRef.current) {
+          setIsConnected(false);
+        }
       };
 
       ws.onclose = (event) => {
-        console.log(`🔌 WebSocket closed (code: ${event.code})`);
-        isConnecting.current = false;
+        console.log(`WebSocket closed (code: ${event.code})`);
+        isConnectingRef.current = false;
         wsRef.current = null;
+        
+        if (isMountedRef.current) {
+          setIsConnected(false);
+        }
 
-        // Auto-reconnect after 3 seconds (unless intentionally closed)
-        if (event.code !== 1000) {
-          console.log('🔄 Reconnecting in 3s...');
+        // Auto-reconnect after 3 seconds (unless intentionally closed or unmounted)
+        if (event.code !== 1000 && isMountedRef.current) {
+          console.log('Reconnecting in 3s...');
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
           }, 3000);
@@ -98,38 +124,54 @@ export const useWebSocket = (userId: number = 1) => {
       wsRef.current = ws;
     } catch (error) {
       console.error('Error creating WebSocket:', error);
-      isConnecting.current = false;
+      isConnectingRef.current = false;
       
-      // Retry connection after 3 seconds
-      reconnectTimeoutRef.current = setTimeout(() => {
-        connect();
-      }, 3000);
+      // Retry connection after 3 seconds if still mounted
+      if (isMountedRef.current) {
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connect();
+        }, 3000);
+      }
     }
   }, [userId, queryClient]);
 
   const disconnect = useCallback(() => {
+    // Clear any pending reconnection attempts
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = undefined;
     }
 
     if (wsRef.current) {
-      console.log('🔌 Disconnecting WebSocket');
-      wsRef.current.close(1000); // Normal closure
+      const ws = wsRef.current;
+      const readyState = ws.readyState;
+      
+      // Only close if not already closing/closed
+      if (readyState === WebSocket.OPEN || readyState === WebSocket.CONNECTING) {
+        console.log('Disconnecting WebSocket');
+        ws.close(1000); // Normal closure
+      }
+      
       wsRef.current = null;
+      setIsConnected(false);
     }
+    
+    isConnectingRef.current = false;
   }, []);
 
   // Connect on mount, disconnect on unmount
   useEffect(() => {
+    isMountedRef.current = true;
     connect();
 
     return () => {
+      isMountedRef.current = false;
       disconnect();
     };
   }, [connect, disconnect]);
 
   return {
-    isConnected: wsRef.current?.readyState === WebSocket.OPEN,
+    isConnected,
     reconnect: connect,
   };
 };

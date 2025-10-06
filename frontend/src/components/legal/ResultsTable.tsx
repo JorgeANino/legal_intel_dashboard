@@ -1,16 +1,18 @@
 'use client';
 
-import { QueryResponse, QueryFilters } from '@/api/types';
 import { useMemo, useState } from 'react';
-import { QueryFilters as QueryFiltersComponent } from './QueryFilters';
+
+import { QueryResponse, QueryFilters } from '@/api/types';
 import { Pagination } from '@/components/ui/Pagination';
 import { useExport } from '@/hooks/useExport';
+
+import { QueryFilters as QueryFiltersComponent } from './QueryFilters';
 
 interface Props {
   data: QueryResponse;
   onPageChange?: (page: number) => void;
   onFilterChange?: (filters: QueryFilters) => void;
-  onSortChange?: (sortBy: string, sortOrder: string) => void;
+  _onSortChange?: (sortBy: string, sortOrder: string) => void;
   availableFilters?: {
     agreement_types: string[];
     jurisdictions: string[];
@@ -23,7 +25,7 @@ export const ResultsTable = ({
   data, 
   onPageChange, 
   onFilterChange, 
-  onSortChange, 
+  _onSortChange, 
   availableFilters 
 }: Props) => {
   const [exportFormat, setExportFormat] = useState<'csv' | 'pdf'>('csv');
@@ -36,8 +38,9 @@ export const ResultsTable = ({
       } else {
         await exportToPDF(data);
       }
-    } catch (error) {
       // Error handling is done in the hook
+    } catch {
+      // Catch block required but error handled in hook
     }
   };
 
@@ -77,7 +80,7 @@ export const ResultsTable = ({
       {/* Query Info and Export Controls */}
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
         <div>
-          <p className="font-medium text-gray-900">Query: "{data.question}"</p>
+          <p className="font-medium text-gray-900">Query: &ldquo;{data.question}&rdquo;</p>
           <p className="text-sm text-gray-500 mt-1">
             Found {data.total_results} result{data.total_results !== 1 ? 's' : ''} 
             {' '}in {data.execution_time_ms}ms
