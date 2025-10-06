@@ -12,7 +12,7 @@ interface Props {
   data: QueryResponse;
   onPageChange?: (page: number) => void;
   onFilterChange?: (filters: QueryFilters) => void;
-  _onSortChange?: (sortBy: string, sortOrder: string) => void;
+  onSortChange?: (sortBy: string, sortOrder: string) => void;
   availableFilters?: {
     agreement_types: string[];
     jurisdictions: string[];
@@ -25,7 +25,7 @@ export const ResultsTable = ({
   data,
   onPageChange,
   onFilterChange,
-  _onSortChange,
+  onSortChange,
   availableFilters,
 }: Props) => {
   const [exportFormat, setExportFormat] = useState<'csv' | 'pdf'>('csv');

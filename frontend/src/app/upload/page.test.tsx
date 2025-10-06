@@ -20,12 +20,15 @@ const mockDocuments = [
   {
     id: 1,
     filename: 'contract_1.pdf',
+    file_path: '/uploads/contract_1.pdf',
+    file_type: 'pdf' as const,
     file_size: 1024000,
     upload_date: '2024-01-15T10:30:00Z',
     processed: true,
     processing_error: null,
-    user_id: 1,
+    created_at: '2024-01-15T10:30:00Z',
     metadata: {
+      id: 1,
       agreement_type: 'NDA',
       jurisdiction: 'Delaware',
       industry: 'Technology',
@@ -34,22 +37,26 @@ const mockDocuments = [
   {
     id: 2,
     filename: 'agreement_2.docx',
+    file_path: '/uploads/agreement_2.docx',
+    file_type: 'docx' as const,
     file_size: 512000,
     upload_date: '2024-01-14T14:20:00Z',
     processed: false,
-    processing_error: null,
-    user_id: 1,
-    metadata: null,
+    processing_error: undefined,
+    created_at: '2024-01-14T14:20:00Z',
+    metadata: undefined,
   },
   {
     id: 3,
     filename: 'failed_doc.pdf',
+    file_path: '/uploads/failed_doc.pdf',
+    file_type: 'pdf' as const,
     file_size: 256000,
     upload_date: '2024-01-13T09:15:00Z',
     processed: false,
     processing_error: 'Failed to extract text from PDF',
-    user_id: 1,
-    metadata: null,
+    created_at: '2024-01-13T09:15:00Z',
+    metadata: undefined,
   },
 ];
 
@@ -81,7 +88,10 @@ describe('UploadPage', () => {
       documents: mockDocuments,
       isLoading: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: jest.fn() as any,
+      uploadDocuments: jest.fn() as any,
+      isUploading: false,
+      uploadProgress: 0,
     });
   });
 
@@ -161,10 +171,13 @@ describe('UploadPage', () => {
 
   it('shows loading skeleton when documents are loading', () => {
     mockUseDocuments.mockReturnValue({
-      documents: null,
+      documents: [],
       isLoading: true,
       error: null,
-      refetch: jest.fn(),
+      refetch: jest.fn() as any,
+      uploadDocuments: jest.fn() as any,
+      isUploading: false,
+      uploadProgress: 0,
     });
 
     render(<UploadPage />, { wrapper: createTestWrapper() });
@@ -178,7 +191,10 @@ describe('UploadPage', () => {
       documents: [],
       isLoading: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: jest.fn() as any,
+      uploadDocuments: jest.fn() as any,
+      isUploading: false,
+      uploadProgress: 0,
     });
 
     render(<UploadPage />, { wrapper: createTestWrapper() });
@@ -188,10 +204,13 @@ describe('UploadPage', () => {
 
   it('shows no documents message when documents is null', () => {
     mockUseDocuments.mockReturnValue({
-      documents: null,
+      documents: [],
       isLoading: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: jest.fn() as any,
+      uploadDocuments: jest.fn() as any,
+      isUploading: false,
+      uploadProgress: 0,
     });
 
     render(<UploadPage />, { wrapper: createTestWrapper() });
@@ -204,19 +223,24 @@ describe('UploadPage', () => {
     const manyDocuments = Array.from({ length: 15 }, (_, i) => ({
       id: i + 1,
       filename: `document_${i + 1}.pdf`,
+      file_path: `/uploads/document_${i + 1}.pdf`,
+      file_type: 'pdf' as const,
       file_size: 100000,
       upload_date: '2024-01-15T10:30:00Z',
       processed: true,
-      processing_error: null,
-      user_id: 1,
-      metadata: null,
+      processing_error: undefined,
+      created_at: '2024-01-15T10:30:00Z',
+      metadata: undefined,
     }));
 
     mockUseDocuments.mockReturnValue({
       documents: manyDocuments,
       isLoading: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: jest.fn() as any,
+      uploadDocuments: jest.fn() as any,
+      isUploading: false,
+      uploadProgress: 0,
     });
 
     render(<UploadPage />, { wrapper: createTestWrapper() });
@@ -291,10 +315,13 @@ describe('UploadPage', () => {
 
   it('handles error state gracefully', () => {
     mockUseDocuments.mockReturnValue({
-      documents: null,
+      documents: [],
       isLoading: false,
       error: new Error('Failed to load documents'),
-      refetch: jest.fn(),
+      refetch: jest.fn() as any,
+      uploadDocuments: jest.fn() as any,
+      isUploading: false,
+      uploadProgress: 0,
     });
 
     render(<UploadPage />, { wrapper: createTestWrapper() });

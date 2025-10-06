@@ -89,3 +89,4 @@ dump.rdb
 logs/
 *.log
 
+*.tsbuildinfo

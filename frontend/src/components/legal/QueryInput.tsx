@@ -39,7 +39,7 @@ export const QueryInput = () => {
       clearSuggestions();
       setShowSuggestions(false);
     }
-  }, [debouncedQuery, fetchSuggestions, clearSuggestions]);
+  }, [debouncedQuery]);
 
   // Handle clicking outside to close suggestions
   useEffect(() => {
@@ -61,7 +61,7 @@ export const QueryInput = () => {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (question.trim()) {
-      executeQuery({ question: question.trim(), max_results: 50 });
+      executeQuery(question.trim());
       setShowSuggestions(false);
     }
   };
@@ -70,7 +70,7 @@ export const QueryInput = () => {
     setQuestion(suggestion);
     setShowSuggestions(false);
     setSelectedSuggestionIndex(-1);
-    executeQuery({ question: suggestion, max_results: 50 });
+    executeQuery(suggestion);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

@@ -77,10 +77,16 @@ describe('QueryPage', () => {
 
     // Default mock implementation
     mockUseDocumentQuery.mockReturnValue({
+      executeQuery: jest.fn(),
       queryResult: null,
       changePage: mockChangePage,
       applyFilters: mockApplyFilters,
       changeSort: mockChangeSort,
+      queryParams: { question: '', max_results: 50, page: 1 },
+      isQuerying: false,
+      queryError: null,
+      queryHistory: [],
+      clearHistory: jest.fn(),
     });
   });
 
@@ -115,10 +121,16 @@ describe('QueryPage', () => {
 
   it('renders ResultsTable when query results are available', () => {
     mockUseDocumentQuery.mockReturnValue({
+      executeQuery: jest.fn(),
       queryResult: mockQueryResult,
       changePage: mockChangePage,
       applyFilters: mockApplyFilters,
       changeSort: mockChangeSort,
+      queryParams: { question: '', max_results: 50, page: 1 },
+      isQuerying: false,
+      queryError: null,
+      queryHistory: [],
+      clearHistory: jest.fn(),
     });
 
     render(<QueryPage />, { wrapper: createTestWrapper() });
@@ -129,10 +141,16 @@ describe('QueryPage', () => {
 
   it('does not show no results state when query results are available', () => {
     mockUseDocumentQuery.mockReturnValue({
+      executeQuery: jest.fn(),
       queryResult: mockQueryResult,
       changePage: mockChangePage,
       applyFilters: mockApplyFilters,
       changeSort: mockChangeSort,
+      queryParams: { question: '', max_results: 50, page: 1 },
+      isQuerying: false,
+      queryError: null,
+      queryHistory: [],
+      clearHistory: jest.fn(),
     });
 
     render(<QueryPage />, { wrapper: createTestWrapper() });
@@ -147,10 +165,16 @@ describe('QueryPage', () => {
 
   it('passes correct props to ResultsTable when results are available', () => {
     mockUseDocumentQuery.mockReturnValue({
+      executeQuery: jest.fn(),
       queryResult: mockQueryResult,
       changePage: mockChangePage,
       applyFilters: mockApplyFilters,
       changeSort: mockChangeSort,
+      queryParams: { question: '', max_results: 50, page: 1 },
+      isQuerying: false,
+      queryError: null,
+      queryHistory: [],
+      clearHistory: jest.fn(),
     });
 
     render(<QueryPage />, { wrapper: createTestWrapper() });
@@ -196,10 +220,16 @@ describe('QueryPage', () => {
     };
 
     mockUseDocumentQuery.mockReturnValue({
+      executeQuery: jest.fn(),
       queryResult: emptyQueryResult,
       changePage: mockChangePage,
       applyFilters: mockApplyFilters,
       changeSort: mockChangeSort,
+      queryParams: { question: '', max_results: 50, page: 1 },
+      isQuerying: false,
+      queryError: null,
+      queryHistory: [],
+      clearHistory: jest.fn(),
     });
 
     render(<QueryPage />, { wrapper: createTestWrapper() });
@@ -240,10 +270,16 @@ describe('QueryPage', () => {
 
     // Test with results
     mockUseDocumentQuery.mockReturnValue({
+      executeQuery: jest.fn(),
       queryResult: mockQueryResult,
       changePage: mockChangePage,
       applyFilters: mockApplyFilters,
       changeSort: mockChangeSort,
+      queryParams: { question: '', max_results: 50, page: 1 },
+      isQuerying: false,
+      queryError: null,
+      queryHistory: [],
+      clearHistory: jest.fn(),
     });
 
     rerender(<QueryPage />);

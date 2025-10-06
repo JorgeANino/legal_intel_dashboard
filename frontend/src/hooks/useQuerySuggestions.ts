@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 import { queryApi } from '@/api/query';
 
@@ -21,7 +21,7 @@ export const useQuerySuggestions = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSuggestions = async (query: string) => {
+  const fetchSuggestions = useCallback(async (query: string) => {
     if (query.length < 3) {
       setSuggestions([]);
       return;
@@ -40,12 +40,12 @@ export const useQuerySuggestions = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const clearSuggestions = () => {
+  const clearSuggestions = useCallback(() => {
     setSuggestions([]);
     setError(null);
-  };
+  }, []);
 
   return {
     suggestions,

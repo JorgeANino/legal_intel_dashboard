@@ -153,7 +153,12 @@ describe('LoginPage', () => {
 
   it('redirects to home page when user is already authenticated', () => {
     mockUseAuth.mockReturnValue({
-      user: { id: 1, email: 'test@example.com', full_name: 'Test User' },
+      user: {
+        id: 1,
+        email: 'test@example.com',
+        full_name: 'Test User',
+        is_active: true,
+      },
       isLoading: false,
       isAuthenticated: true,
       login: mockLogin,
@@ -167,7 +172,12 @@ describe('LoginPage', () => {
 
   it('does not render form when user is authenticated', () => {
     mockUseAuth.mockReturnValue({
-      user: { id: 1, email: 'test@example.com', full_name: 'Test User' },
+      user: {
+        id: 1,
+        email: 'test@example.com',
+        full_name: 'Test User',
+        is_active: true,
+      },
       isLoading: false,
       isAuthenticated: true,
       login: mockLogin,
