@@ -92,7 +92,7 @@ services:
       - db
       - redis
       - backend
-    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+    entrypoint: ["/app/entrypoint-celery.sh"]
     networks:
       - legal_intel_network
     restart: unless-stopped

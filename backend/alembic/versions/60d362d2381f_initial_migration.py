@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 414a7b8d6f8f
+Revision ID: 60d362d2381f
 Revises: 
-Create Date: 2025-10-05 03:50:53.990368
+Create Date: 2025-10-06 01:02:34.743202
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '414a7b8d6f8f'
+revision: str = '60d362d2381f'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -27,8 +27,12 @@ def upgrade() -> None:
     sa.Column('full_name', sa.String(), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('is_superuser', sa.Boolean(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_by', sa.Integer(), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('updated_by', sa.Integer(), nullable=True),
+    sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('deleted_by', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
@@ -45,8 +49,12 @@ def upgrade() -> None:
     sa.Column('raw_text', sa.Text(), nullable=True),
     sa.Column('page_count', sa.Integer(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_by', sa.Integer(), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('updated_by', sa.Integer(), nullable=True),
+    sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('deleted_by', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -60,11 +68,15 @@ def upgrade() -> None:
     sa.Column('query_type', sa.String(length=50), nullable=True),
     sa.Column('results', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     sa.Column('execution_time_ms', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_by', sa.Integer(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('updated_by', sa.Integer(), nullable=True),
+    sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('deleted_by', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_queries_created_at'), 'queries', ['created_at'], unique=False)
     op.create_index(op.f('ix_queries_id'), 'queries', ['id'], unique=False)
     op.create_index(op.f('ix_queries_user_id'), 'queries', ['user_id'], unique=False)
     op.create_table('document_chunks',
@@ -73,8 +85,14 @@ def upgrade() -> None:
     sa.Column('chunk_index', sa.Integer(), nullable=False),
     sa.Column('chunk_text', sa.Text(), nullable=False),
     sa.Column('chunk_size', sa.Integer(), nullable=True),
+    sa.Column('embedding', sa.ARRAY(sa.Float()), nullable=True),
     sa.Column('chunk_metadata', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_by', sa.Integer(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('updated_by', sa.Integer(), nullable=True),
+    sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('deleted_by', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['document_id'], ['documents.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -96,8 +114,12 @@ def upgrade() -> None:
     sa.Column('key_terms', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     sa.Column('confidence_score', sa.Float(), nullable=True),
     sa.Column('extracted_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_by', sa.Integer(), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('updated_by', sa.Integer(), nullable=True),
+    sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('deleted_by', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['document_id'], ['documents.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -122,7 +144,6 @@ def downgrade() -> None:
     op.drop_table('document_chunks')
     op.drop_index(op.f('ix_queries_user_id'), table_name='queries')
     op.drop_index(op.f('ix_queries_id'), table_name='queries')
-    op.drop_index(op.f('ix_queries_created_at'), table_name='queries')
     op.drop_table('queries')
     op.drop_index(op.f('ix_documents_processed'), table_name='documents')
     op.drop_index(op.f('ix_documents_id'), table_name='documents')

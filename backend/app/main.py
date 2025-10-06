@@ -1,21 +1,27 @@
 """
 FastAPI Application Entry Point - Legal Intel Dashboard
 """
+# Standard library imports
+import time
+from contextlib import asynccontextmanager
+
+# Third-party imports
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-import time
 
 try:
+    # Third-party imports
     import sentry_sdk
     from sentry_sdk.integrations.fastapi import FastApiIntegration
+
     SENTRY_AVAILABLE = True
 except ImportError:
     SENTRY_AVAILABLE = False
 
-from app.core.config import settings
-from app.core.logging_config import logger, RequestLogger
+# Local application imports
 from app.api.v1.router import api_router
+from app.core.config import settings
+from app.core.logging_config import RequestLogger, logger
 
 
 @asynccontextmanager
@@ -25,13 +31,9 @@ async def lifespan(app: FastAPI):
     """
     # Startup
     logger.info("🚀 Starting up Legal Intel Dashboard API...")
-    
-    # Initialize database connections
-    # from app.core.database import init_db
-    # await init_db()
-    
+
     yield
-    
+
     # Shutdown
     logger.info("🛑 Shutting down Legal Intel Dashboard API...")
 
@@ -65,30 +67,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Request logging middleware
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     """Log all API requests with timing"""
     start_time = time.time()
-    
+
     try:
         response = await call_next(request)
         process_time = time.time() - start_time
-        
+
         # Log request
         await RequestLogger.log_request(request, response, process_time)
-        
+
         # Add timing header
         response.headers["X-Process-Time"] = str(round(process_time * 1000, 2))
-        
+
         return response
     except Exception as e:
-        logger.error(f"Request failed", extra={
-            "method": request.method,
-            "path": request.url.path,
-            "error": str(e)
-        })
+        logger.error(
+            "Request failed",
+            extra={"method": request.method, "path": request.url.path, "error": str(e)},
+        )
         raise
+
 
 # Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
@@ -101,7 +104,7 @@ async def root():
         "message": "Legal Intel Dashboard API",
         "version": settings.VERSION,
         "status": "running",
-        "docs": f"{settings.API_V1_STR}/docs"
+        "docs": f"{settings.API_V1_STR}/docs",
     }
 
 
@@ -109,4 +112,3 @@ async def root():
 async def health_check():
     """Basic health check endpoint"""
     return {"status": "healthy"}
-

@@ -1,13 +1,46 @@
 'use client';
 
-import { QueryResponse } from '@/api/types';
-import { useMemo } from 'react';
+import { QueryResponse, QueryFilters } from '@/api/types';
+import { useMemo, useState } from 'react';
+import { QueryFilters as QueryFiltersComponent } from './QueryFilters';
+import { Pagination } from '@/components/ui/Pagination';
+import { useExport } from '@/hooks/useExport';
 
 interface Props {
   data: QueryResponse;
+  onPageChange?: (page: number) => void;
+  onFilterChange?: (filters: QueryFilters) => void;
+  onSortChange?: (sortBy: string, sortOrder: string) => void;
+  availableFilters?: {
+    agreement_types: string[];
+    jurisdictions: string[];
+    industries: string[];
+    geographies: string[];
+  };
 }
 
-export const ResultsTable = ({ data }: Props) => {
+export const ResultsTable = ({ 
+  data, 
+  onPageChange, 
+  onFilterChange, 
+  onSortChange, 
+  availableFilters 
+}: Props) => {
+  const [exportFormat, setExportFormat] = useState<'csv' | 'pdf'>('csv');
+  const { exportToCSV, exportToPDF, isExporting } = useExport();
+
+  const handleExport = async () => {
+    try {
+      if (exportFormat === 'csv') {
+        await exportToCSV(data);
+      } else {
+        await exportToPDF(data);
+      }
+    } catch (error) {
+      // Error handling is done in the hook
+    }
+  };
+
   // Extract column headers from first result
   const columns = useMemo(() => {
     if (data.results.length === 0) return [];
@@ -32,26 +65,47 @@ export const ResultsTable = ({ data }: Props) => {
 
   return (
     <div className="space-y-4">
-      {/* Query Info */}
+      {/* Filters Section */}
+      {availableFilters && onFilterChange && (
+        <QueryFiltersComponent 
+          onFilterChange={onFilterChange}
+          availableFilters={availableFilters}
+          currentFilters={data.filters_applied}
+        />
+      )}
+
+      {/* Query Info and Export Controls */}
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
         <div>
           <p className="font-medium text-gray-900">Query: "{data.question}"</p>
           <p className="text-sm text-gray-500 mt-1">
             Found {data.total_results} result{data.total_results !== 1 ? 's' : ''} 
             {' '}in {data.execution_time_ms}ms
+            {data.page && data.total_pages && (
+              <span> • Page {data.page} of {data.total_pages}</span>
+            )}
           </p>
         </div>
-        <button
-          onClick={() => {
-            // Export to CSV functionality
-            const csv = convertToCSV(data);
-            downloadCSV(csv, `query-results-${Date.now()}.csv`);
-          }}
-          className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-md
-                   hover:bg-gray-50 transition-colors"
-        >
-          Export CSV
-        </button>
+        
+        <div className="flex items-center space-x-4">
+          <select
+            value={exportFormat}
+            onChange={(e) => setExportFormat(e.target.value as 'csv' | 'pdf')}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          >
+            <option value="csv">CSV</option>
+            <option value="pdf">PDF</option>
+          </select>
+          
+          <button
+            onClick={handleExport}
+            disabled={isExporting}
+            className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-md
+                     hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isExporting ? 'Exporting...' : `Export ${exportFormat.toUpperCase()}`}
+          </button>
+        </div>
       </div>
 
       {/* Results Table */}
@@ -85,31 +139,19 @@ export const ResultsTable = ({ data }: Props) => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {data.total_pages && data.total_pages > 1 && onPageChange && (
+        <div className="mt-4">
+          <Pagination
+            currentPage={data.page}
+            totalPages={data.total_pages}
+            onPageChange={onPageChange}
+          />
+        </div>
+      )}
     </div>
   );
 };
 
-// Helper functions
-function convertToCSV(data: QueryResponse): string {
-  const headers = ['document', ...Object.keys(data.results[0]?.metadata || {})];
-  const rows = data.results.map(r => [
-    r.document,
-    ...Object.values(r.metadata)
-  ]);
-  
-  return [
-    headers.join(','),
-    ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-  ].join('\n');
-}
-
-function downloadCSV(csv: string, filename: string) {
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  window.URL.revokeObjectURL(url);
-}
 

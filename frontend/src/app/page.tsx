@@ -1,58 +1,51 @@
 'use client';
 
 import { useDashboard } from '@/hooks/useDashboard';
+import { useExport } from '@/hooks/useExport';
 import { StatsCards } from '@/components/legal/StatsCards';
 import { AgreementTypesChart } from '@/components/legal/AgreementTypesChart';
 import { JurisdictionChart } from '@/components/legal/JurisdictionChart';
 import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
-import Link from 'next/link';
+import AuthGuard from '@/guards/AuthGuard';
 
 export default function DashboardPage() {
   const { stats, isLoading, error, refetch } = useDashboard();
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <ErrorDisplay
-            title="Failed to load dashboard"
-            message={error instanceof Error ? error.message : 'Unknown error'}
-            onRetry={refetch}
-          />
-        </div>
-      </div>
-    );
-  }
+  const { exportDashboardReport, isExporting } = useExport();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Legal Intel Dashboard</h1>
-            <nav className="flex gap-4">
-              <Link
-                href="/upload"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
-              >
-                Upload Documents
-              </Link>
-              <Link
-                href="/query"
-                className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-md transition-colors"
-              >
-                Query Documents
-              </Link>
-            </nav>
+    <AuthGuard>
+      {error ? (
+        <div className="p-6">
+          <div className="max-w-7xl mx-auto">
+            <ErrorDisplay
+              title="Failed to load dashboard"
+              message={error instanceof Error ? error.message : 'Unknown error'}
+              onRetry={refetch}
+            />
           </div>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="space-y-8">
+      ) : (
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+              <p className="mt-2 text-gray-600">
+                Overview of your legal document collection
+              </p>
+            </div>
+            
+            <button
+              onClick={() => stats && exportDashboardReport(stats)}
+              disabled={isExporting || !stats}
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark
+                       disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isExporting ? 'Exporting...' : 'Export Report'}
+            </button>
+          </div>
+          
+          <div className="space-y-8">
           {/* Stats Cards */}
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -124,9 +117,10 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
+          </div>
         </div>
-      </main>
-    </div>
+      )}
+    </AuthGuard>
   );
 }
 

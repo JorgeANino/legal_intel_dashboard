@@ -2,7 +2,7 @@
 
 A production-grade legal document intelligence platform built with FastAPI, Next.js, and AI-powered analysis.
 
-## 🚀 Features
+## Features
 
 ### Document Management
 - **Smart Upload**: Drag-and-drop interface for PDF and DOCX files
@@ -22,7 +22,7 @@ A production-grade legal document intelligence platform built with FastAPI, Next
 - Live statistics and key metrics
 - Agreement type distribution charts
 - Jurisdiction breakdown visualizations
-- Document processing status tracking
+- Automatic UI updates via WebSocket push
 
 ### Production-Ready Architecture
 - **Performance**: Redis caching, connection pooling, request deduplication
@@ -35,11 +35,13 @@ A production-grade legal document intelligence platform built with FastAPI, Next
 ### Backend (FastAPI)
 - Async PostgreSQL with pgvector for vector search
 - Celery with Redis for background tasks
+- **WebSocket + Redis Pub/Sub**: Real-time updates (3-6x more efficient than polling)
 - LangChain integration for LLM orchestration
 - Production middleware: rate limiting, caching, logging
 
 ### Frontend (Next.js + React)
 - TypeScript with strict type checking
+- **WebSocket Integration**: Instant document status updates
 - React Query for data fetching and caching
 - Zustand for state management
 - Recharts for data visualization
@@ -90,14 +92,31 @@ chmod +x run_containers.sh
 
 ### 3. Access the Application
 
-- **Dashboard**: http://localhost:3000
+- **Dashboard**: http://localhost:3000 (redirects to login)
 - **API Docs**: http://localhost:8000/api/v1/docs
 - **API Health**: http://localhost:8000/api/v1/monitoring/health
 - **Celery Monitor**: http://localhost:5555
 
+### 4. Login with Test User
+
+The application includes a pre-configured test user:
+
+**Login Credentials:**
+- **Email**: `test@example.com`
+- **Password**: `testpassword123`
+
+**Login Process:**
+1. Navigate to http://localhost:3000
+2. You'll be automatically redirected to the login page
+3. Enter the test credentials above
+4. Click "Sign in" to access the dashboard
+
+**Note**: The test user is created automatically when the backend starts up.
+
 ## 📚 Documentation
 
 - [Setup Guide](SETUP_GUIDE.md) - Detailed installation and configuration
+- [WebSocket Efficiency Analysis](WEBSOCKET_EFFICIENCY_ANALYSIS.md) - Real-time updates performance deep-dive
 - [API Documentation](http://localhost:8000/api/v1/docs) - Interactive API docs (when running)
 
 ## 🛠️ Development
@@ -291,9 +310,25 @@ docker-compose up -d
 
 ## 📊 Performance
 
+### Real-Time Updates: WebSocket vs Polling
+
+**We chose WebSocket for maximum efficiency:**
+
+| Metric | Polling | WebSocket | Improvement |
+|--------|---------|-----------|-------------|
+| Network requests | 6 per doc | 1 + 2 events | **3x less** |
+| Update latency | 0-5s | <100ms | **25x faster** |
+| Database queries | 6 per doc | 1 per doc | **6x fewer** |
+| Bandwidth (100 users) | 600KB | 200KB | **3x less** |
+
+**For 1000+ concurrent users:** WebSocket scales linearly while polling creates exponential load.
+
+See [WEBSOCKET_EFFICIENCY_ANALYSIS.md](WEBSOCKET_EFFICIENCY_ANALYSIS.md) for detailed benchmarks.
+
 ### Optimizations Included
 
 - **Backend**:
+  - **WebSocket + Redis Pub/Sub**: Real-time push notifications
   - Connection pooling (10 connections, 20 overflow)
   - Redis caching with TTL
   - Rate limiting (100 requests/minute)
@@ -301,6 +336,7 @@ docker-compose up -d
   - Celery task queues
 
 - **Frontend**:
+  - **WebSocket Auto-Reconnection**: Zero-config real-time updates
   - React Query caching
   - Request deduplication
   - Debounced inputs
@@ -310,6 +346,7 @@ docker-compose up -d
 ### Expected Performance
 
 - Document upload: < 1s (file save)
+- Status update (WebSocket): < 100ms
 - Metadata extraction: 10-30s (async)
 - Query execution: 2-5s
 - Dashboard load: < 500ms (cached)

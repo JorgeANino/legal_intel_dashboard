@@ -1,6 +1,7 @@
 #!/bin/sh
 
-if [ "$DATABASE" = "postgres" ]
+# Wait for postgres
+if [ "$DATABASE" = "postgres" ] || [ -n "$POSTGRES_HOST" ]
 then
     echo "Waiting for postgres..."
 
@@ -11,9 +12,12 @@ then
     echo "PostgreSQL started"
 fi
 
-# Wait for the backend container to finish database setup
-echo "Waiting for backend to complete database setup..."
-sleep 10
+# Wait for Redis
+echo "Waiting for Redis..."
+while ! nc -z $REDIS_HOST $REDIS_PORT; do
+  sleep 0.1
+done
+echo "Redis started"
 
 # Fix permissions for transformers cache directory
 if [ -d "/home/appuser/.cache" ]; then
@@ -22,4 +26,7 @@ if [ -d "/home/appuser/.cache" ]; then
     echo "✓ Cache directory permissions fixed"
 fi
 
-exec "$@"
+echo "🔄 Starting Celery worker..."
+
+# Start Celery worker
+exec celery -A app.core.celery_app worker --loglevel=info --concurrency=2

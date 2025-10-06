@@ -78,9 +78,9 @@ export const uploadWithProgress = (
       'Content-Type': 'multipart/form-data',
     },
     onUploadProgress: (progressEvent) => {
-      if (progressEvent.total) {
+      if (progressEvent.total && onProgress) {
         const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        onProgress?.(progress);
+        onProgress(progress);
       }
     },
   });

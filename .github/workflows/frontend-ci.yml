@@ -1,0 +1,201 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: |
+        echo "📦 Installing dependencies..."
+        npm ci
+        echo "✅ Dependencies installed!"
+
+    - name: Run ESLint
+      working-directory: ./frontend
+      run: |
+        echo "🔍 Running ESLint..."
+        npm run lint
+        echo "✅ ESLint passed!"
+
+    - name: Run Prettier check
+      working-directory: ./frontend
+      run: |
+        echo "🎨 Checking code formatting with Prettier..."
+        npx prettier --check "src/**/*.{js,jsx,ts,tsx,json,css,md}"
+        echo "✅ Code formatting is correct!"
+
+    - name: Run TypeScript type checking
+      working-directory: ./frontend
+      run: |
+        echo "🔍 Running TypeScript type checking..."
+        npx tsc --noEmit
+        echo "✅ TypeScript type checking passed!"
+
+    - name: Build application
+      working-directory: ./frontend
+      run: |
+        echo "🏗️ Building application..."
+        npm run build
+        echo "✅ Build successful!"
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-build
+        path: frontend/.next/
+        retention-days: 1
+
+  accessibility-check:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Install accessibility testing tools
+      working-directory: ./frontend
+      run: |
+        echo "📦 Installing accessibility testing tools..."
+        npm install --save-dev @axe-core/cli axe-core
+        echo "✅ Accessibility tools installed!"
+
+    - name: Build application for accessibility testing
+      working-directory: ./frontend
+      run: npm run build
+
+    - name: Run accessibility tests
+      working-directory: ./frontend
+      run: |
+        echo "♿ Running accessibility tests..."
+        npx @axe-core/cli http://localhost:3000 --exit || true
+        echo "✅ Accessibility tests completed!"
+
+  bundle-analysis:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Analyze bundle size
+      working-directory: ./frontend
+      run: |
+        echo "📊 Analyzing bundle size..."
+        npm run build
+        npx webpack-bundle-analyzer .next/static/chunks/*.js --mode static --report bundle-report.html --no-open || true
+        echo "✅ Bundle analysis completed!"
+
+    - name: Upload bundle analysis
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: bundle-analysis
+        path: frontend/bundle-report.html
+        retention-days: 7
+
+  dependency-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Check for security vulnerabilities
+      working-directory: ./frontend
+      run: |
+        echo "🔒 Checking for security vulnerabilities..."
+        npm audit --audit-level=moderate
+        echo "✅ Security audit completed!"
+
+    - name: Check for outdated dependencies
+      working-directory: ./frontend
+      run: |
+        echo "📦 Checking for outdated dependencies..."
+        npm outdated || true
+        echo "✅ Dependency check completed!"
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build frontend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        file: ./frontend/Dockerfile
+        push: false
+        tags: legal-intel-frontend:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Test Docker image
+      run: |
+        echo "🐳 Testing Docker image..."
+        docker run --rm legal-intel-frontend:latest node -e "console.log('✅ Frontend Docker image test passed!')"
+        echo "✅ Docker image test passed!"

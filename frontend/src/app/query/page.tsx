@@ -3,40 +3,27 @@
 import { QueryInput } from '@/components/legal/QueryInput';
 import { ResultsTable } from '@/components/legal/ResultsTable';
 import { useDocumentQuery } from '@/hooks/useDocumentQuery';
-import Link from 'next/link';
+import AuthGuard from '@/guards/AuthGuard';
 
 export default function QueryPage() {
-  const { queryResult } = useDocumentQuery();
+  const { 
+    queryResult, 
+    changePage, 
+    applyFilters, 
+    changeSort 
+  } = useDocumentQuery();
+
+  // Mock available filters - in a real app, this would come from the API
+  const availableFilters = {
+    agreement_types: ['NDA', 'MSA', 'Service Agreement', 'License Agreement', 'Franchise Agreement'],
+    jurisdictions: ['Delaware', 'New York', 'California', 'UAE', 'UK'],
+    industries: ['Technology', 'Healthcare', 'Finance', 'Oil & Gas', 'Real Estate'],
+    geographies: ['North America', 'Europe', 'Middle East', 'Asia']
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-gray-900 hover:text-primary transition-colors">
-              Legal Intel Dashboard
-            </Link>
-            <nav className="flex gap-4">
-              <Link
-                href="/"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/upload"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
-              >
-                Upload Documents
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+    <AuthGuard>
+      <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="space-y-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Query Documents</h1>
@@ -51,7 +38,13 @@ export default function QueryPage() {
           {/* Results */}
           {queryResult && (
             <div>
-              <ResultsTable data={queryResult} />
+              <ResultsTable 
+                data={queryResult} 
+                onPageChange={changePage}
+                onFilterChange={applyFilters}
+                onSortChange={changeSort}
+                availableFilters={availableFilters}
+              />
             </div>
           )}
 
@@ -78,8 +71,8 @@ export default function QueryPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </AuthGuard>
   );
 }
 

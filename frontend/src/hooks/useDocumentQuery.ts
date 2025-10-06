@@ -1,11 +1,19 @@
 import { useMutation } from '@tanstack/react-query';
 import { queryApi } from '@/api/query';
-import { QueryRequest, QueryResponse } from '@/api/types';
+import { QueryRequest, QueryResponse, QueryFilters } from '@/api/types';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
 export const useDocumentQuery = () => {
   const [queryHistory, setQueryHistory] = useState<QueryResponse[]>([]);
+  const [queryParams, setQueryParams] = useState<QueryRequest>({
+    question: '',
+    max_results: 50,
+    page: 1,
+    filters: {},
+    sort_by: 'relevance',
+    sort_order: 'desc'
+  });
 
   const queryMutation = useMutation({
     mutationFn: (request: QueryRequest) => queryApi.queryDocuments(request),
@@ -22,8 +30,36 @@ export const useDocumentQuery = () => {
     },
   });
 
+  const executeQuery = (question: string) => {
+    const newParams = { ...queryParams, question, page: 1 };
+    setQueryParams(newParams);
+    queryMutation.mutate(newParams);
+  };
+
+  const changePage = (page: number) => {
+    const newParams = { ...queryParams, page };
+    setQueryParams(newParams);
+    queryMutation.mutate(newParams);
+  };
+
+  const applyFilters = (filters: QueryFilters) => {
+    const newParams = { ...queryParams, filters, page: 1 };
+    setQueryParams(newParams);
+    queryMutation.mutate(newParams);
+  };
+
+  const changeSort = (sortBy: string, sortOrder: string) => {
+    const newParams = { ...queryParams, sort_by: sortBy as any, sort_order: sortOrder as any, page: 1 };
+    setQueryParams(newParams);
+    queryMutation.mutate(newParams);
+  };
+
   return {
-    executeQuery: queryMutation.mutate,
+    executeQuery,
+    changePage,
+    applyFilters,
+    changeSort,
+    queryParams,
     isQuerying: queryMutation.isPending,
     queryResult: queryMutation.data,
     queryError: queryMutation.error,

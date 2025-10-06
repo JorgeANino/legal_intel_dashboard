@@ -3,40 +3,14 @@
 import { DocumentUpload } from '@/components/legal/DocumentUpload';
 import { useDocuments } from '@/hooks/useDocuments';
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
-import Link from 'next/link';
+import AuthGuard from '@/guards/AuthGuard';
 
 export default function UploadPage() {
   const { documents, isLoading } = useDocuments();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-gray-900 hover:text-primary transition-colors">
-              Legal Intel Dashboard
-            </Link>
-            <nav className="flex gap-4">
-              <Link
-                href="/"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/query"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
-              >
-                Query Documents
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+    <AuthGuard>
+      <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="space-y-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Upload Legal Documents</h1>
@@ -76,6 +50,13 @@ export default function UploadPage() {
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           Processed
                         </span>
+                      ) : doc.processing_error ? (
+                        <span 
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 cursor-help" 
+                          title={doc.processing_error}
+                        >
+                          Failed
+                        </span>
                       ) : (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                           Processing...
@@ -90,8 +71,8 @@ export default function UploadPage() {
             )}
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </AuthGuard>
   );
 }
 

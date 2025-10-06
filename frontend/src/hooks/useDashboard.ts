@@ -10,7 +10,7 @@ export const useDashboard = () => {
   } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => dashboardApi.getStats(),
-    staleTime: 60000, // Consider fresh for 1 minute (backend caches for 5min)
+    staleTime: 60000,
     refetchOnWindowFocus: true,
     retry: 3,
   });

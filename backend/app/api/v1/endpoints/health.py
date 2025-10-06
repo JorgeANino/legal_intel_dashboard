@@ -1,11 +1,12 @@
 """
 Health check endpoints
 """
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text
-
+# Local application imports
 from app.core.database import get_db
+# Third-party imports
+from fastapi import APIRouter, Depends
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
@@ -20,8 +21,9 @@ async def health_check():
 async def db_health_check(db: AsyncSession = Depends(get_db)):
     """Database health check"""
     try:
-        result = await db.execute(text("SELECT 1"))
+        await db.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
         return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
+
 

@@ -1,19 +1,22 @@
 """
 Alembic environment configuration for SQLAlchemy
 """
-import os
-from logging.config import fileConfig
+# Standard library imports
 
-from sqlalchemy import engine_from_config, pool
-from sqlalchemy.engine import Connection
-
-from alembic import context
-
+# Standard library imports
 # Add parent directory to path to import app modules
 import sys
+from logging.config import fileConfig
 from pathlib import Path
+
+# Local application imports
+from alembic import context
+# Third-party imports
+from sqlalchemy import engine_from_config, pool
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Local application imports
 from app.core.config import settings
 from app.models import Base  # This imports all models via __init__.py
 
@@ -29,7 +32,7 @@ if config.config_file_name is not None:
 # Set the SQLAlchemy URL from environment variables
 config.set_main_option(
     "sqlalchemy.url",
-    settings.DATABASE_URL.replace("+asyncpg", "")  # Use sync driver for Alembic
+    settings.DATABASE_URL.replace("+asyncpg", ""),  # Use sync driver for Alembic
 )
 
 # add your model's MetaData object here for 'autogenerate' support
@@ -68,15 +71,15 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
-    
+
     Uses synchronous engine for migrations (Alembic doesn't fully support async yet).
     """
     # Use sync driver for migrations
     sync_db_url = settings.DATABASE_URL.replace("+asyncpg", "")
-    
+
     configuration = config.get_section(config.config_ini_section)
     configuration["sqlalchemy.url"] = sync_db_url
-    
+
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",
@@ -99,4 +102,3 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-

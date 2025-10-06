@@ -1,17 +1,22 @@
 """
 Document models for Legal Intel Dashboard
 """
-from sqlalchemy import Column, Integer, String, Boolean, Text, DateTime, ForeignKey, ARRAY, DECIMAL, Date, Float
+# Local application imports
+from app.core.database import Base
+from app.models.base import AuditMixin
+# Third-party imports
+from sqlalchemy import (ARRAY, DECIMAL, Boolean, Column, Date, DateTime, Float,
+                        ForeignKey, Integer, String, Text)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.core.database import Base
 
 
-class Document(Base):
-    """Document model for storing uploaded legal documents"""
+class Document(Base, AuditMixin):
+    """Document model for storing uploaded legal documents with audit fields"""
+
     __tablename__ = "documents"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     filename = Column(String(255), nullable=False, index=True)
     file_path = Column(String(500), nullable=False)
@@ -22,24 +27,33 @@ class Document(Base):
     processing_error = Column(Text, nullable=True)
     raw_text = Column(Text, nullable=True)
     page_count = Column(Integer)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
+    user_id = Column(Integer, ForeignKey("users.id"))
+
     # Relationships
-    doc_metadata = relationship("DocumentMetadata", back_populates="document", uselist=False, cascade="all, delete-orphan")
+    doc_metadata = relationship(
+        "DocumentMetadata", back_populates="document", uselist=False, cascade="all, delete-orphan"
+    )
     chunks = relationship("DocumentChunk", back_populates="document", cascade="all, delete-orphan")
-    
+
     def __repr__(self):
-        return f"<Document(id={self.id}, filename='{self.filename}')>"
+        # Safe repr that doesn't trigger lazy loads on detached instances
+        try:
+            doc_id = object.__getattribute__(self, "id")
+            filename = object.__getattribute__(self, "filename")
+            return f"<Document(id={doc_id}, filename='{filename}')>"
+        except Exception:
+            return f"<Document at {hex(id(self))}>"
 
 
-class DocumentMetadata(Base):
-    """Metadata extracted from legal documents"""
+class DocumentMetadata(Base, AuditMixin):
+    """Metadata extracted from legal documents with audit fields"""
+
     __tablename__ = "document_metadata"
-    
+
     id = Column(Integer, primary_key=True, index=True)
-    document_id = Column(Integer, ForeignKey('documents.id', ondelete='CASCADE'), unique=True, index=True)
+    document_id = Column(
+        Integer, ForeignKey("documents.id", ondelete="CASCADE"), unique=True, index=True
+    )
     agreement_type = Column(String(100), index=True)
     governing_law = Column(String(100), index=True)
     jurisdiction = Column(String(100))
@@ -53,49 +67,46 @@ class DocumentMetadata(Base):
     key_terms = Column(JSONB, nullable=True)
     confidence_score = Column(Float)
     extracted_at = Column(DateTime(timezone=True), server_default=func.now())
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
+
     # Relationships
     document = relationship("Document", back_populates="doc_metadata")
-    
+
     def __repr__(self):
         return f"<DocumentMetadata(id={self.id}, type='{self.agreement_type}')>"
 
 
-class DocumentChunk(Base):
-    """Text chunks with embeddings for semantic search and RAG"""
+class DocumentChunk(Base, AuditMixin):
+    """Text chunks with embeddings for semantic search and RAG with audit fields"""
+
     __tablename__ = "document_chunks"
-    
+
     id = Column(Integer, primary_key=True, index=True)
-    document_id = Column(Integer, ForeignKey('documents.id', ondelete='CASCADE'), index=True)
+    document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), index=True)
     chunk_index = Column(Integer, nullable=False)
     chunk_text = Column(Text, nullable=False)
     chunk_size = Column(Integer)
     # Vector embedding for semantic search (1536 dimensions for OpenAI text-embedding-3-small)
     embedding = Column(ARRAY(Float), nullable=True)
     chunk_metadata = Column(JSONB, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Relationships
     document = relationship("Document", back_populates="chunks")
-    
+
     def __repr__(self):
         return f"<DocumentChunk(id={self.id}, doc_id={self.document_id}, idx={self.chunk_index})>"
 
 
-class Query(Base):
-    """Query audit trail"""
+class Query(Base, AuditMixin):
+    """Query audit trail with audit fields"""
+
     __tablename__ = "queries"
-    
+
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
     query_text = Column(Text, nullable=False)
     query_type = Column(String(50))  # interrogation, search, analysis
     results = Column(JSONB)
     execution_time_ms = Column(Integer)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
-    
+
     def __repr__(self):
         return f"<Query(id={self.id}, user_id={self.user_id})>"
-

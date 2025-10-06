@@ -45,16 +45,35 @@ export interface DocumentUploadResult {
 }
 
 // Query types
+export interface QueryFilters {
+  agreement_types?: string[];
+  jurisdictions?: string[];
+  industries?: string[];
+  geographies?: string[];
+  date_range?: {
+    start: string;
+    end: string;
+  };
+}
+
 export interface QueryRequest {
   question: string;
   max_results?: number;
+  page?: number;
+  filters?: QueryFilters;
+  sort_by?: 'relevance' | 'date' | 'document_name';
+  sort_order?: 'asc' | 'desc';
 }
 
 export interface QueryResponse {
   question: string;
   results: QueryResult[];
   total_results: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
   execution_time_ms: number;
+  filters_applied?: QueryFilters;
 }
 
 export interface QueryResult {

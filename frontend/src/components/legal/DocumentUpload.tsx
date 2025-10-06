@@ -14,33 +14,40 @@ const ACCEPTED_TYPES = {
 export const DocumentUpload = () => {
   const { uploadDocuments, isUploading, uploadProgress } = useDocuments();
   const [rejectedFiles, setRejectedFiles] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const onDrop = useCallback(
     (acceptedFiles: File[], rejectedFiles: any[]) => {
-      setRejectedFiles([]);
+      try {
+        setRejectedFiles([]);
+        setError(null);
 
-      // Validate file sizes
-      const validFiles = acceptedFiles.filter((file) => {
-        if (file.size > MAX_FILE_SIZE) {
+        // Validate file sizes
+        const validFiles = acceptedFiles.filter((file) => {
+          if (file.size > MAX_FILE_SIZE) {
+            setRejectedFiles((prev) => [
+              ...prev,
+              `${file.name}: File too large (max 50MB)`,
+            ]);
+            return false;
+          }
+          return true;
+        });
+
+        // Show rejected file errors
+        rejectedFiles.forEach((rejected) => {
           setRejectedFiles((prev) => [
             ...prev,
-            `${file.name}: File too large (max 50MB)`,
+            `${rejected.file.name}: Invalid file type (PDF or DOCX only)`,
           ]);
-          return false;
+        });
+
+        if (validFiles.length > 0) {
+          uploadDocuments(validFiles);
         }
-        return true;
-      });
-
-      // Show rejected file errors
-      rejectedFiles.forEach((rejected) => {
-        setRejectedFiles((prev) => [
-          ...prev,
-          `${rejected.file.name}: Invalid file type (PDF or DOCX only)`,
-        ]);
-      });
-
-      if (validFiles.length > 0) {
-        uploadDocuments(validFiles);
+      } catch (err) {
+        console.error('Error in onDrop:', err);
+        setError('An error occurred while processing files. Please try again.');
       }
     },
     [uploadDocuments]
@@ -51,6 +58,10 @@ export const DocumentUpload = () => {
     accept: ACCEPTED_TYPES,
     multiple: true,
     disabled: isUploading,
+    onError: (err) => {
+      console.error('Dropzone error:', err);
+      setError('An error occurred with the file drop zone. Please try again.');
+    },
   });
 
   return (
@@ -113,6 +124,15 @@ export const DocumentUpload = () => {
             Processing will continue in the background
           </p>
         </div>
+      )}
+
+      {/* General Error */}
+      {error && (
+        <ErrorDisplay
+          title="Upload Error"
+          message={error}
+          onDismiss={() => setError(null)}
+        />
       )}
 
       {/* Rejected Files */}

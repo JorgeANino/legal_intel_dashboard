@@ -16,15 +16,18 @@ export const useDocuments = () => {
   } = useQuery({
     queryKey: ['documents'],
     queryFn: () => documentsApi.listDocuments(),
-    staleTime: 30000, // Consider fresh for 30 seconds
+    staleTime: 60000,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    refetchOnWindowFocus: true,
   });
 
   // Upload mutation
   const uploadMutation = useMutation({
     mutationFn: (files: File[]) =>
-      documentsApi.uploadDocuments(files, setUploadProgress),
+      documentsApi.uploadDocuments(files, (progress: number) => {
+        setUploadProgress(progress);
+      }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
