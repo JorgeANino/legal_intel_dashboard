@@ -39,7 +39,7 @@ class ExportService:
                 user_id=request.user_id,
                 db=db,
                 max_results=request.max_results or 1000,
-                filters=request.filters.dict() if request.filters else None
+                filters=request.filters.dict() if request.filters else None,
             )
 
             # Convert to CSV
@@ -59,7 +59,7 @@ class ExportService:
                 user_id=request.user_id,
                 db=db,
                 max_results=request.max_results or 1000,
-                filters=request.filters.dict() if request.filters else None
+                filters=request.filters.dict() if request.filters else None,
             )
 
             # Generate PDF
@@ -80,7 +80,9 @@ class ExportService:
             pdf_data = self._generate_dashboard_pdf(stats, request.include_charts)
             return pdf_data
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to export dashboard report: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to export dashboard report: {str(e)}"
+            )
 
     def _convert_to_csv(self, results: list[dict[str, Any]]) -> str:
         """Convert query results to CSV format"""
@@ -102,7 +104,7 @@ class ExportService:
         for result in results:
             row = {
                 "document": result.get("document", ""),
-                "document_id": result.get("document_id", "")
+                "document_id": result.get("document_id", ""),
             }
 
             if "metadata" in result:
@@ -121,11 +123,11 @@ class ExportService:
 
         # Title
         title_style = ParagraphStyle(
-            'CustomTitle',
-            parent=styles['Heading1'],
+            "CustomTitle",
+            parent=styles["Heading1"],
             fontSize=16,
             spaceAfter=30,
-            alignment=1  # Center alignment
+            alignment=1,  # Center alignment
         )
         story.append(Paragraph("Query Results Report", title_style))
         story.append(Spacer(1, 12))
@@ -136,7 +138,7 @@ class ExportService:
         query_info += f"<b>Execution Time:</b> {results['execution_time_ms']}ms<br/>"
         query_info += f"<b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
 
-        story.append(Paragraph(query_info, styles['Normal']))
+        story.append(Paragraph(query_info, styles["Normal"]))
         story.append(Spacer(1, 20))
 
         # Results table
@@ -159,29 +161,37 @@ class ExportService:
                 for header in sorted(metadata_headers):
                     value = ""
                     if "metadata" in result and header in result["metadata"]:
-                        value = str(result["metadata"][header]) if result["metadata"][header] is not None else ""
+                        value = (
+                            str(result["metadata"][header])
+                            if result["metadata"][header] is not None
+                            else ""
+                        )
                     row.append(value)
 
                 table_data.append(row)
 
             # Create table
             table = Table(table_data)
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ('FONTSIZE', (0, 1), (-1, -1), 8),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
+            table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                        ("FONTSIZE", (0, 1), (-1, -1), 8),
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ]
+                )
+            )
 
             story.append(table)
         else:
-            story.append(Paragraph("No results found.", styles['Normal']))
+            story.append(Paragraph("No results found.", styles["Normal"]))
 
         doc.build(story)
         buffer.seek(0)
@@ -196,11 +206,7 @@ class ExportService:
 
         # Title
         title_style = ParagraphStyle(
-            'CustomTitle',
-            parent=styles['Heading1'],
-            fontSize=16,
-            spaceAfter=30,
-            alignment=1
+            "CustomTitle", parent=styles["Heading1"], fontSize=16, spaceAfter=30, alignment=1
         )
         story.append(Paragraph("Legal Intel Dashboard Report", title_style))
         story.append(Spacer(1, 12))
@@ -211,90 +217,106 @@ class ExportService:
         report_info += f"<b>Processed Documents:</b> {stats.processed_documents}<br/>"
         report_info += f"<b>Total Pages:</b> {stats.total_pages:,}"
 
-        story.append(Paragraph(report_info, styles['Normal']))
+        story.append(Paragraph(report_info, styles["Normal"]))
         story.append(Spacer(1, 20))
 
         # Agreement Types
         if stats.agreement_types:
-            story.append(Paragraph("<b>Agreement Types</b>", styles['Heading2']))
+            story.append(Paragraph("<b>Agreement Types</b>", styles["Heading2"]))
             agreement_data = [["Agreement Type", "Count"]]
             for agreement_type, count in stats.agreement_types.items():
                 agreement_data.append([agreement_type, str(count)])
 
             agreement_table = Table(agreement_data)
-            agreement_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ]))
+            agreement_table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ]
+                )
+            )
             story.append(agreement_table)
             story.append(Spacer(1, 20))
 
         # Jurisdictions
         if stats.jurisdictions:
-            story.append(Paragraph("<b>Jurisdictions</b>", styles['Heading2']))
+            story.append(Paragraph("<b>Jurisdictions</b>", styles["Heading2"]))
             jurisdiction_data = [["Jurisdiction", "Count"]]
             for jurisdiction, count in stats.jurisdictions.items():
                 jurisdiction_data.append([jurisdiction, str(count)])
 
             jurisdiction_table = Table(jurisdiction_data)
-            jurisdiction_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ]))
+            jurisdiction_table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ]
+                )
+            )
             story.append(jurisdiction_table)
             story.append(Spacer(1, 20))
 
         # Industries
         if stats.industries:
-            story.append(Paragraph("<b>Industries</b>", styles['Heading2']))
+            story.append(Paragraph("<b>Industries</b>", styles["Heading2"]))
             industry_data = [["Industry", "Count"]]
             for industry, count in stats.industries.items():
                 industry_data.append([industry, str(count)])
 
             industry_table = Table(industry_data)
-            industry_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ]))
+            industry_table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ]
+                )
+            )
             story.append(industry_table)
             story.append(Spacer(1, 20))
 
         # Geographies
         if stats.geographies:
-            story.append(Paragraph("<b>Geographies</b>", styles['Heading2']))
+            story.append(Paragraph("<b>Geographies</b>", styles["Heading2"]))
             geography_data = [["Geography", "Count"]]
             for geography, count in stats.geographies.items():
                 geography_data.append([geography, str(count)])
 
             geography_table = Table(geography_data)
-            geography_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ]))
+            geography_table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ]
+                )
+            )
             story.append(geography_table)
 
         doc.build(story)

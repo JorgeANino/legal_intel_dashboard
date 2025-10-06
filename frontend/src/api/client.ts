@@ -14,17 +14,18 @@ export const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Request interceptor - add auth, logging
+// Request interceptor - add auth token and logging
 apiClient.interceptors.request.use(
   (config) => {
     // Add timestamp for request tracking
     config.metadata = { startTime: Date.now() };
 
-    // Add auth token if available (for future use)
-    // const token = localStorage.getItem('auth_token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    // Add auth token if available
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     return config;
   },
   (error) => {
@@ -33,11 +34,11 @@ apiClient.interceptors.request.use(
   },
 );
 
-// Response interceptor - handle errors, logging
+// Response interceptor - handle errors, logging, and auth
 apiClient.interceptors.response.use(
   (response) => {
     const duration = Date.now() - (response.config.metadata?.startTime || 0);
-    console.log(`API Response: ${response.config.url} (${duration}ms)`)
+    console.log(`API Response: ${response.config.url} (${duration}ms)`);
     return response;
   },
   async (error: AxiosError) => {
@@ -46,6 +47,24 @@ apiClient.interceptors.response.use(
       `API Error: ${error.config?.url} (${duration}ms)`,
       error.response?.data,
     );
+
+    // Handle authentication errors
+    if (error.response?.status === 401) {
+      // Clear invalid tokens
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+
+      // Redirect to login (only if not already on login page)
+      if (
+        typeof window !== 'undefined' &&
+        !window.location.pathname.includes('/login')
+      ) {
+        window.location.href = '/login';
+      }
+
+      throw new Error('Session expired. Please login again.');
+    }
 
     // Handle specific error codes
     if (error.response?.status === 429) {

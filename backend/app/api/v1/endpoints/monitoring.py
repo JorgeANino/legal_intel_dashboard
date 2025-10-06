@@ -70,7 +70,7 @@ async def get_metrics(db: AsyncSession = Depends(get_db)):
 
         # Get processing queue size
         pending_docs = await db.execute(
-            select(func.count(Document.id)).where(Document.processed is False)
+            select(func.count(Document.id)).where(Document.processed.is_(False))
         )
         queue_size = pending_docs.scalar() or 0
 

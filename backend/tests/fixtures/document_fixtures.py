@@ -24,7 +24,7 @@ def mock_document_metadata():
         "geography": "North America",
         "extracted_text": "This is a sample contract text...",
         "created_at": "2024-01-01T12:00:00Z",
-        "updated_at": "2024-01-01T12:00:00Z"
+        "updated_at": "2024-01-01T12:00:00Z",
     }
 
 
@@ -38,7 +38,7 @@ def mock_document_chunk():
         "content": "This is a sample chunk of text from the document.",
         "embedding": [0.1, 0.2, 0.3, 0.4, 0.5],  # Mock embedding vector
         "metadata": {"page": 1, "section": "introduction"},
-        "created_at": "2024-01-01T12:00:00Z"
+        "created_at": "2024-01-01T12:00:00Z",
     }
 
 
@@ -54,10 +54,10 @@ def mock_upload_response():
                 "upload_date": "2024-01-01T12:00:00Z",
                 "processed": False,
                 "processing_error": None,
-                "user_id": 1
+                "user_id": 1,
             }
         ],
-        "message": "Documents uploaded successfully"
+        "message": "Documents uploaded successfully",
     }
 
 
@@ -78,7 +78,7 @@ def mock_file_upload():
         "filename": "test_contract.pdf",
         "content": io.BytesIO(b"PDF content"),
         "content_type": "application/pdf",
-        "size": 1024000
+        "size": 1024000,
     }
 
 
@@ -93,7 +93,7 @@ def mock_document_list():
             "upload_date": "2024-01-01T12:00:00Z",
             "processed": True,
             "processing_error": None,
-            "user_id": 1
+            "user_id": 1,
         },
         {
             "id": 2,
@@ -102,8 +102,8 @@ def mock_document_list():
             "upload_date": "2024-01-02T12:00:00Z",
             "processed": False,
             "processing_error": None,
-            "user_id": 1
-        }
+            "user_id": 1,
+        },
     ]
 
 
@@ -111,17 +111,7 @@ def mock_document_list():
 def mock_document_service():
     """Mock document service"""
     service = MagicMock()
-    service.upload_document.return_value = {
-        "id": 1,
-        "filename": "test.pdf",
-        "processed": False
-    }
-    service.get_document.return_value = {
-        "id": 1,
-        "filename": "test.pdf",
-        "processed": True
-    }
+    service.upload_document.return_value = {"id": 1, "filename": "test.pdf", "processed": False}
+    service.get_document.return_value = {"id": 1, "filename": "test.pdf", "processed": True}
     service.list_documents.return_value = []
     return service
-
-

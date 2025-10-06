@@ -20,8 +20,6 @@ from app.schemas.user import UserResponse
 router = APIRouter()
 
 
-
-
 @router.post("/login", response_model=LoginResponse)
 async def login(credentials: LoginRequest, db: AsyncSession = Depends(get_db)):
     """

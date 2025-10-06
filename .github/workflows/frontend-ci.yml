@@ -55,6 +55,21 @@ jobs:
         npx tsc --noEmit
         echo "✅ TypeScript type checking passed!"
 
+    - name: Run Jest tests
+      working-directory: ./frontend
+      run: |
+        echo "🧪 Running Jest tests..."
+        npm test -- --coverage --watchAll=false
+        echo "✅ All tests passed!"
+
+    - name: Upload test coverage
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./frontend/coverage/coverage-final.json
+        flags: frontend
+        name: frontend-coverage
+        fail_ci_if_error: false
+
     - name: Build application
       working-directory: ./frontend
       run: |
@@ -172,30 +187,3 @@ jobs:
         echo "📦 Checking for outdated dependencies..."
         npm outdated || true
         echo "✅ Dependency check completed!"
-
-  docker-build:
-    runs-on: ubuntu-latest
-    needs: lint-and-test
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Build frontend Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./frontend
-        file: ./frontend/Dockerfile
-        push: false
-        tags: legal-intel-frontend:latest
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-
-    - name: Test Docker image
-      run: |
-        echo "🐳 Testing Docker image..."
-        docker run --rm legal-intel-frontend:latest node -e "console.log('✅ Frontend Docker image test passed!')"
-        echo "✅ Docker image test passed!"

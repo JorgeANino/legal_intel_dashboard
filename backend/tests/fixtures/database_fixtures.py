@@ -68,5 +68,3 @@ def mock_database_connection():
     connection.rollback.return_value = None
     connection.close.return_value = None
     return connection
-
-

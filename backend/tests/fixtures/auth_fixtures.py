@@ -17,10 +17,7 @@ def mock_jwt_token():
 @pytest.fixture
 def mock_login_credentials():
     """Mock login credentials for testing"""
-    return {
-        "email": "test@example.com",
-        "password": "testpassword123"
-    }
+    return {"email": "test@example.com", "password": "testpassword123"}
 
 
 @pytest.fixture
@@ -30,12 +27,7 @@ def mock_login_response():
         "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIn0.test",
         "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIn0.refresh",
         "token_type": "bearer",
-        "user": {
-            "id": 1,
-            "email": "test@example.com",
-            "full_name": "Test User",
-            "is_active": True
-        }
+        "user": {"id": 1, "email": "test@example.com", "full_name": "Test User", "is_active": True},
     }
 
 
@@ -51,7 +43,7 @@ def mock_auth_dependencies():
     return {
         "get_current_user": MagicMock(return_value={"id": 1, "email": "test@example.com"}),
         "verify_password": MagicMock(return_value=True),
-        "get_password_hash": MagicMock(return_value="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8Kz8KzK")
+        "get_password_hash": MagicMock(
+            return_value="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8Kz8KzK"
+        ),
     }
-
-

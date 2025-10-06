@@ -10,6 +10,7 @@ class AuditMixin:
     """
     Mixin class that provides audit fields for tracking creation, updates, and soft deletes
     """
+
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     created_by = Column(Integer, nullable=True)  # User ID who created the record
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
@@ -30,6 +31,7 @@ class AuditMixin:
             deleted_by: User ID who is performing the deletion
         """
         from sqlalchemy.sql import func
+
         self.deleted_at = func.now()
         self.deleted_by = deleted_by
 

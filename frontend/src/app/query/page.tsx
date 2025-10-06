@@ -6,8 +6,14 @@ import AuthGuard from '@/guards/AuthGuard';
 import { useDocumentQuery } from '@/hooks/useDocumentQuery';
 
 export default function QueryPage() {
-  const { queryResult, changePage, applyFilters, changeSort } =
-    useDocumentQuery();
+  const {
+    queryResult,
+    executeQuery,
+    isQuerying,
+    changePage,
+    applyFilters,
+    changeSort,
+  } = useDocumentQuery();
 
   // Mock available filters - in a real app, this would come from the API
   const availableFilters = {
@@ -43,7 +49,7 @@ export default function QueryPage() {
           </div>
 
           {/* Query Input */}
-          <QueryInput />
+          <QueryInput onExecuteQuery={executeQuery} isQuerying={isQuerying} />
 
           {/* Results */}
           {queryResult && (

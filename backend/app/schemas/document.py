@@ -104,6 +104,7 @@ class DashboardStats(BaseModel):
 
 class QuerySuggestionsResponse(BaseModel):
     """Response model for query suggestions"""
+
     suggestions: list[str]
     popular_queries: list[str]
     legal_terms: list[str]
@@ -112,6 +113,7 @@ class QuerySuggestionsResponse(BaseModel):
 
 class QueryFilters(BaseModel):
     """Filter options for query results"""
+
     agreement_types: list[str] | None = None
     jurisdictions: list[str] | None = None
     industries: list[str] | None = None
@@ -121,6 +123,7 @@ class QueryFilters(BaseModel):
 
 class ExportRequest(BaseModel):
     """Request model for exporting query results"""
+
     question: str
     user_id: int
     max_results: int | None = 1000
@@ -131,6 +134,7 @@ class ExportRequest(BaseModel):
 
 class DashboardExportRequest(BaseModel):
     """Request model for exporting dashboard reports"""
+
     user_id: int
     include_charts: bool = True
     date_range: dict[str, str] | None = None

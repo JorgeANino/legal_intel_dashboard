@@ -22,9 +22,9 @@ class TestHealthEndpoints:
 
     def test_health_check_with_checks(self, client):
         """Test health check with service checks"""
-        with patch('app.api.v1.endpoints.health.check_database') as mock_db, \
-             patch('app.api.v1.endpoints.health.check_redis') as mock_redis:
-
+        with patch("app.api.v1.endpoints.health.check_database") as mock_db, patch(
+            "app.api.v1.endpoints.health.check_redis"
+        ) as mock_redis:
             mock_db.return_value = True
             mock_redis.return_value = True
 
@@ -60,32 +60,26 @@ class TestAuthEndpoints:
 
     def test_login_endpoint_exists(self, client):
         """Test that login endpoint exists and accepts POST requests"""
-        response = client.post("/api/v1/auth/login", json={
-            "email": "test@example.com",
-            "password": "wrongpassword"
-        })
+        response = client.post(
+            "/api/v1/auth/login", json={"email": "test@example.com", "password": "wrongpassword"}
+        )
         # Should return 401 for wrong credentials, not 404
         assert response.status_code in [401, 422]
 
     def test_login_validation(self, client):
         """Test login endpoint validation"""
         # Test missing email
-        response = client.post("/api/v1/auth/login", json={
-            "password": "testpassword123"
-        })
+        response = client.post("/api/v1/auth/login", json={"password": "testpassword123"})
         assert response.status_code == 422
 
         # Test missing password
-        response = client.post("/api/v1/auth/login", json={
-            "email": "test@example.com"
-        })
+        response = client.post("/api/v1/auth/login", json={"email": "test@example.com"})
         assert response.status_code == 422
 
         # Test invalid email format
-        response = client.post("/api/v1/auth/login", json={
-            "email": "invalid-email",
-            "password": "testpassword123"
-        })
+        response = client.post(
+            "/api/v1/auth/login", json={"email": "invalid-email", "password": "testpassword123"}
+        )
         assert response.status_code == 422
 
     def test_me_endpoint_exists(self, client):
@@ -94,8 +88,8 @@ class TestAuthEndpoints:
         # Should return 401 for unauthenticated request, not 404
         assert response.status_code in [401, 403]
 
-    @patch('app.api.v1.endpoints.auth.get_db')
-    @patch('app.api.v1.endpoints.auth.select')
+    @patch("app.api.v1.endpoints.auth.get_db")
+    @patch("app.api.v1.endpoints.auth.select")
     def test_successful_login(self, mock_select, mock_get_db, client, mock_user):
         """Test successful login flow"""
         # Mock database response
@@ -108,11 +102,11 @@ class TestAuthEndpoints:
         mock_session.execute.return_value = mock_result
 
         # Mock password verification
-        with patch('app.api.v1.endpoints.auth.verify_password', return_value=True):
-            response = client.post("/api/v1/auth/login", json={
-                "email": "test@example.com",
-                "password": "testpassword123"
-            })
+        with patch("app.api.v1.endpoints.auth.verify_password", return_value=True):
+            response = client.post(
+                "/api/v1/auth/login",
+                json={"email": "test@example.com", "password": "testpassword123"},
+            )
 
             assert response.status_code == 200
             data = response.json()
@@ -143,7 +137,7 @@ class TestDocumentEndpoints:
         # Should return 401 for unauthenticated request
         assert response.status_code in [401, 403]
 
-    @patch('app.api.v1.endpoints.documents.get_db')
+    @patch("app.api.v1.endpoints.documents.get_db")
     def test_list_documents_with_auth(self, mock_get_db, client, mock_document):
         """Test list documents with authentication"""
         # Mock database response
@@ -156,7 +150,7 @@ class TestDocumentEndpoints:
         mock_session.execute.return_value = mock_result
 
         # Mock authentication
-        with patch('app.api.v1.endpoints.documents.get_current_user', return_value=mock_document):
+        with patch("app.api.v1.endpoints.documents.get_current_user", return_value=mock_document):
             response = client.get("/api/v1/documents")
             # This will still fail due to auth dependency, but endpoint exists
             assert response.status_code in [401, 403, 200]
@@ -167,9 +161,7 @@ class TestQueryEndpoints:
 
     def test_query_endpoint_exists(self, client):
         """Test that query endpoint exists"""
-        response = client.post("/api/v1/query", json={
-            "question": "test question"
-        })
+        response = client.post("/api/v1/query", json={"question": "test question"})
         # Should return 401 for unauthenticated request
         assert response.status_code in [401, 403]
 
@@ -180,9 +172,7 @@ class TestQueryEndpoints:
         assert response.status_code == 422
 
         # Test empty question
-        response = client.post("/api/v1/query", json={
-            "question": ""
-        })
+        response = client.post("/api/v1/query", json={"question": ""})
         assert response.status_code == 422
 
 
@@ -195,7 +185,7 @@ class TestDashboardEndpoints:
         # Should return 401 for unauthenticated request
         assert response.status_code in [401, 403]
 
-    @patch('app.api.v1.endpoints.dashboard.get_db')
+    @patch("app.api.v1.endpoints.dashboard.get_db")
     def test_dashboard_with_auth(self, mock_get_db, client):
         """Test dashboard with authentication"""
         # Mock database response
@@ -208,7 +198,7 @@ class TestDashboardEndpoints:
         mock_session.execute.return_value = mock_result
 
         # Mock authentication
-        with patch('app.api.v1.endpoints.dashboard.get_current_user', return_value={"id": 1}):
+        with patch("app.api.v1.endpoints.dashboard.get_current_user", return_value={"id": 1}):
             response = client.get("/api/v1/dashboard")
             # This will still fail due to auth dependency, but endpoint exists
             assert response.status_code in [401, 403, 200]
@@ -239,6 +229,7 @@ class TestWebSocketEndpoints:
         # But we can verify the route exists by checking the router
         # Local application imports
         from app.api.v1.endpoints.websocket import router
+
         assert router is not None
 
         # Check if the websocket route is registered
@@ -259,7 +250,7 @@ class TestAPIRouter:
             "/api/v1/documents",
             "/api/v1/query",
             "/api/v1/dashboard",
-            "/api/v1/users"
+            "/api/v1/users",
         ]
 
         for endpoint in endpoints_to_test:
@@ -281,11 +272,7 @@ class TestAPIRouter:
     def test_api_version_prefix(self, client):
         """Test that all API endpoints use v1 prefix"""
         # Test a few endpoints to ensure they use /api/v1/ prefix
-        endpoints = [
-            "/api/v1/health",
-            "/api/v1/auth/login",
-            "/api/v1/documents"
-        ]
+        endpoints = ["/api/v1/health", "/api/v1/auth/login", "/api/v1/documents"]
 
         for endpoint in endpoints:
             response = client.get(endpoint)
@@ -310,9 +297,7 @@ class TestErrorHandling:
     def test_422_for_invalid_json(self, client):
         """Test 422 for invalid JSON"""
         response = client.post(
-            "/api/v1/auth/login",
-            data="invalid json",
-            headers={"Content-Type": "application/json"}
+            "/api/v1/auth/login", data="invalid json", headers={"Content-Type": "application/json"}
         )
         assert response.status_code == 422
 

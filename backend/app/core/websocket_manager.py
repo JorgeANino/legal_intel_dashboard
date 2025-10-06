@@ -92,11 +92,7 @@ class ConnectionManager:
             user_id: The user ID to notify
             status: The status information to broadcast
         """
-        message = {
-            "type": "document_update",
-            "document_id": document_id,
-            "status": status
-        }
+        message = {"type": "document_update", "document_id": document_id, "status": status}
         await self.send_to_user(user_id, message)
 
     async def close_all_connections(self) -> None:

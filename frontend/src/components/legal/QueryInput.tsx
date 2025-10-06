@@ -3,7 +3,6 @@
 import { useState, FormEvent, useEffect, useRef } from 'react';
 
 import { useDebounce } from '@/hooks/useDebounce';
-import { useDocumentQuery } from '@/hooks/useDocumentQuery';
 import { useQuerySuggestions } from '@/hooks/useQuerySuggestions';
 
 const EXAMPLE_QUERIES = [
@@ -14,14 +13,20 @@ const EXAMPLE_QUERIES = [
   'What contracts are from the Middle East?',
 ];
 
-export const QueryInput = () => {
+interface QueryInputProps {
+  onExecuteQuery?: (question: string) => void;
+  isQuerying?: boolean;
+}
+
+export const QueryInput = ({
+  onExecuteQuery,
+  isQuerying = false,
+}: QueryInputProps) => {
   const [question, setQuestion] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
-
-  const { executeQuery, isQuerying } = useDocumentQuery();
   const {
     suggestions,
     isLoading: suggestionsLoading,
@@ -61,8 +66,8 @@ export const QueryInput = () => {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (question.trim()) {
-      executeQuery(question.trim());
+    if (question.trim() && onExecuteQuery) {
+      onExecuteQuery(question.trim());
       setShowSuggestions(false);
     }
   };
@@ -71,7 +76,9 @@ export const QueryInput = () => {
     setQuestion(suggestion);
     setShowSuggestions(false);
     setSelectedSuggestionIndex(-1);
-    executeQuery(suggestion);
+    if (onExecuteQuery) {
+      onExecuteQuery(suggestion);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

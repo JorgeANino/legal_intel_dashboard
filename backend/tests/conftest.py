@@ -27,7 +27,7 @@ def mock_user():
         "email": "test@example.com",
         "full_name": "Test User",
         "is_active": True,
-        "is_superuser": False
+        "is_superuser": False,
     }
 
 
@@ -51,8 +51,8 @@ def mock_document():
             "jurisdiction": "Delaware",
             "agreement_type": "Service Agreement",
             "industry": "Technology",
-            "geography": "North America"
-        }
+            "geography": "North America",
+        },
     }
 
 
@@ -65,7 +65,11 @@ def sample_pdf_file():
 @pytest.fixture
 def sample_docx_file():
     """Create a sample DOCX file for testing"""
-    return ("test_contract.docx", io.BytesIO(b"DOCX content"), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    return (
+        "test_contract.docx",
+        io.BytesIO(b"DOCX content"),
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
 
 
 @pytest.fixture
@@ -74,25 +78,10 @@ def mock_dashboard_stats():
     return {
         "total_documents": 10,
         "processed_documents": 8,
-        "agreement_types": {
-            "NDA": 3,
-            "Service Agreement": 4,
-            "License Agreement": 1
-        },
-        "jurisdictions": {
-            "Delaware": 5,
-            "New York": 3,
-            "California": 2
-        },
-        "industries": {
-            "Technology": 6,
-            "Healthcare": 2,
-            "Finance": 2
-        },
-        "geographies": {
-            "North America": 8,
-            "Europe": 2
-        }
+        "agreement_types": {"NDA": 3, "Service Agreement": 4, "License Agreement": 1},
+        "jurisdictions": {"Delaware": 5, "New York": 3, "California": 2},
+        "industries": {"Technology": 6, "Healthcare": 2, "Finance": 2},
+        "geographies": {"North America": 8, "Europe": 2},
     }
 
 
@@ -104,16 +93,12 @@ def mock_query_result():
             {
                 "document": "contract_1.pdf",
                 "governing_law": "Delaware",
-                "agreement_type": "Service Agreement"
+                "agreement_type": "Service Agreement",
             },
-            {
-                "document": "contract_2.pdf",
-                "governing_law": "New York",
-                "agreement_type": "NDA"
-            }
+            {"document": "contract_2.pdf", "governing_law": "New York", "agreement_type": "NDA"},
         ],
         "total_results": 2,
-        "query": "Which agreements are governed by Delaware law?"
+        "query": "Which agreements are governed by Delaware law?",
     }
 
 
@@ -138,5 +123,3 @@ def mock_redis_client():
     redis_client.publish.return_value = None
     redis_client.close.return_value = None
     return redis_client
-
-

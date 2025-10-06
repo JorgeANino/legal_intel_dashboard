@@ -168,9 +168,7 @@ async def _process_document(document_id: int):
                             )
                             db.add(chunk)
 
-                        print(
-                            f"Generated {len(embeddings)} embeddings for document {document_id}"
-                        )
+                        print(f"Generated {len(embeddings)} embeddings for document {document_id}")
                 except Exception as e:
                     print(f"Warning: Failed to generate embeddings: {e}")
                     # Don't fail the entire task if embeddings fail

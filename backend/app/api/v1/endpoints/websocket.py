@@ -75,11 +75,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
                 print(f"Client listener error: {e}")
 
         # Run both listeners concurrently
-        await asyncio.gather(
-            listen_redis(),
-            listen_client(),
-            return_exceptions=True
-        )
+        await asyncio.gather(listen_redis(), listen_client(), return_exceptions=True)
 
     except WebSocketDisconnect:
         print(f"Client disconnected: user {user_id}")
@@ -93,5 +89,3 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
                 await pubsub.close()
             except Exception:
                 pass
-
-

@@ -15,11 +15,20 @@ from unittest.mock import AsyncMock, MagicMock, patch
 class TestDocumentUpload:
     """Test document upload functionality"""
 
-    @patch('app.api.v1.endpoints.documents.get_db')
-    @patch('app.api.v1.endpoints.documents.get_current_user')
-    @patch('app.api.v1.endpoints.documents.document_service')
-    @patch('app.api.v1.endpoints.documents.process_document.delay')
-    def test_upload_single_pdf(self, mock_celery_task, mock_service, mock_user, mock_db, client, sample_pdf_file, mock_document):
+    @patch("app.api.v1.endpoints.documents.get_db")
+    @patch("app.api.v1.endpoints.documents.get_current_user")
+    @patch("app.api.v1.endpoints.documents.document_service")
+    @patch("app.api.v1.endpoints.documents.process_document.delay")
+    def test_upload_single_pdf(
+        self,
+        mock_celery_task,
+        mock_service,
+        mock_user,
+        mock_db,
+        client,
+        sample_pdf_file,
+        mock_document,
+    ):
         """Test uploading a single PDF file"""
         # Mock dependencies
         mock_user.return_value = {"id": 1}
@@ -44,11 +53,20 @@ class TestDocumentUpload:
         assert len(data["documents"]) == 1
         assert data["documents"][0]["filename"] == filename
 
-    @patch('app.api.v1.endpoints.documents.get_db')
-    @patch('app.api.v1.endpoints.documents.get_current_user')
-    @patch('app.api.v1.endpoints.documents.document_service')
-    @patch('app.api.v1.endpoints.documents.process_document.delay')
-    def test_upload_multiple_files(self, mock_celery_task, mock_service, mock_user, mock_db, client, sample_pdf_file, sample_docx_file):
+    @patch("app.api.v1.endpoints.documents.get_db")
+    @patch("app.api.v1.endpoints.documents.get_current_user")
+    @patch("app.api.v1.endpoints.documents.document_service")
+    @patch("app.api.v1.endpoints.documents.process_document.delay")
+    def test_upload_multiple_files(
+        self,
+        mock_celery_task,
+        mock_service,
+        mock_user,
+        mock_db,
+        client,
+        sample_pdf_file,
+        sample_docx_file,
+    ):
         """Test uploading multiple files"""
         # Mock dependencies
         mock_user.return_value = {"id": 1}
@@ -66,7 +84,7 @@ class TestDocumentUpload:
 
         files = [
             ("files", (pdf_filename, pdf_content, pdf_type)),
-            ("files", (docx_filename, docx_content, docx_type))
+            ("files", (docx_filename, docx_content, docx_type)),
         ]
 
         response = client.post("/api/v1/documents/upload", files=files)
@@ -89,9 +107,9 @@ class TestDocumentUpload:
         # Should return validation error
         assert response.status_code == 422
 
-    @patch('app.api.v1.endpoints.documents.get_db')
-    @patch('app.api.v1.endpoints.documents.get_current_user')
-    @patch('app.api.v1.endpoints.documents.document_service')
+    @patch("app.api.v1.endpoints.documents.get_db")
+    @patch("app.api.v1.endpoints.documents.get_current_user")
+    @patch("app.api.v1.endpoints.documents.document_service")
     def test_upload_service_error(self, mock_service, mock_user, mock_db, client, sample_pdf_file):
         """Test upload when document service fails"""
         # Mock dependencies
@@ -113,9 +131,9 @@ class TestDocumentUpload:
 class TestDocumentListing:
     """Test document listing functionality"""
 
-    @patch('app.api.v1.endpoints.documents.get_db')
-    @patch('app.api.v1.endpoints.documents.get_current_user')
-    @patch('app.api.v1.endpoints.documents.document_service')
+    @patch("app.api.v1.endpoints.documents.get_db")
+    @patch("app.api.v1.endpoints.documents.get_current_user")
+    @patch("app.api.v1.endpoints.documents.document_service")
     def test_list_documents_success(self, mock_service, mock_user, mock_db, client, mock_document):
         """Test successful document listing"""
         # Mock dependencies
@@ -133,10 +151,12 @@ class TestDocumentListing:
         assert len(data["documents"]) == 1
         assert data["documents"][0]["filename"] == mock_document["filename"]
 
-    @patch('app.api.v1.endpoints.documents.get_db')
-    @patch('app.api.v1.endpoints.documents.get_current_user')
-    @patch('app.api.v1.endpoints.documents.document_service')
-    def test_list_documents_with_pagination(self, mock_service, mock_user, mock_db, client, mock_document):
+    @patch("app.api.v1.endpoints.documents.get_db")
+    @patch("app.api.v1.endpoints.documents.get_current_user")
+    @patch("app.api.v1.endpoints.documents.document_service")
+    def test_list_documents_with_pagination(
+        self, mock_service, mock_user, mock_db, client, mock_document
+    ):
         """Test document listing with pagination"""
         # Mock dependencies
         mock_user.return_value = {"id": 1}
@@ -151,9 +171,9 @@ class TestDocumentListing:
         data = response.json()
         assert "documents" in data
 
-    @patch('app.api.v1.endpoints.documents.get_db')
-    @patch('app.api.v1.endpoints.documents.get_current_user')
-    @patch('app.api.v1.endpoints.documents.document_service')
+    @patch("app.api.v1.endpoints.documents.get_db")
+    @patch("app.api.v1.endpoints.documents.get_current_user")
+    @patch("app.api.v1.endpoints.documents.document_service")
     def test_list_documents_empty(self, mock_service, mock_user, mock_db, client):
         """Test document listing when no documents exist"""
         # Mock dependencies
@@ -179,9 +199,9 @@ class TestDocumentListing:
 class TestDocumentRetrieval:
     """Test individual document retrieval"""
 
-    @patch('app.api.v1.endpoints.documents.get_db')
-    @patch('app.api.v1.endpoints.documents.get_current_user')
-    @patch('app.api.v1.endpoints.documents.document_service')
+    @patch("app.api.v1.endpoints.documents.get_db")
+    @patch("app.api.v1.endpoints.documents.get_current_user")
+    @patch("app.api.v1.endpoints.documents.document_service")
     def test_get_document_success(self, mock_service, mock_user, mock_db, client, mock_document):
         """Test successful document retrieval"""
         # Mock dependencies
@@ -198,9 +218,9 @@ class TestDocumentRetrieval:
         assert data["filename"] == mock_document["filename"]
         assert data["id"] == mock_document["id"]
 
-    @patch('app.api.v1.endpoints.documents.get_db')
-    @patch('app.api.v1.endpoints.documents.get_current_user')
-    @patch('app.api.v1.endpoints.documents.document_service')
+    @patch("app.api.v1.endpoints.documents.get_db")
+    @patch("app.api.v1.endpoints.documents.get_current_user")
+    @patch("app.api.v1.endpoints.documents.document_service")
     def test_get_document_not_found(self, mock_service, mock_user, mock_db, client):
         """Test document retrieval when document doesn't exist"""
         # Mock dependencies
@@ -214,9 +234,9 @@ class TestDocumentRetrieval:
 
         assert response.status_code == 404
 
-    @patch('app.api.v1.endpoints.documents.get_db')
-    @patch('app.api.v1.endpoints.documents.get_current_user')
-    @patch('app.api.v1.endpoints.documents.document_service')
+    @patch("app.api.v1.endpoints.documents.get_db")
+    @patch("app.api.v1.endpoints.documents.get_current_user")
+    @patch("app.api.v1.endpoints.documents.document_service")
     def test_get_document_wrong_user(self, mock_service, mock_user, mock_db, client, mock_document):
         """Test document retrieval for document owned by different user"""
         # Mock dependencies
@@ -241,9 +261,9 @@ class TestDocumentRetrieval:
 class TestDocumentProcessing:
     """Test document processing status"""
 
-    @patch('app.api.v1.endpoints.documents.get_db')
-    @patch('app.api.v1.endpoints.documents.get_current_user')
-    @patch('app.api.v1.endpoints.documents.document_service')
+    @patch("app.api.v1.endpoints.documents.get_db")
+    @patch("app.api.v1.endpoints.documents.get_current_user")
+    @patch("app.api.v1.endpoints.documents.document_service")
     def test_document_processing_status(self, mock_service, mock_user, mock_db, client):
         """Test checking document processing status"""
         # Mock dependencies
@@ -256,7 +276,7 @@ class TestDocumentProcessing:
             "filename": "test.pdf",
             "processed": False,
             "processing_error": None,
-            "user_id": 1
+            "user_id": 1,
         }
         mock_service.get_document.return_value = processing_document
 
@@ -267,9 +287,9 @@ class TestDocumentProcessing:
         assert not data["processed"]
         assert data["processing_error"] is None
 
-    @patch('app.api.v1.endpoints.documents.get_db')
-    @patch('app.api.v1.endpoints.documents.get_current_user')
-    @patch('app.api.v1.endpoints.documents.document_service')
+    @patch("app.api.v1.endpoints.documents.get_db")
+    @patch("app.api.v1.endpoints.documents.get_current_user")
+    @patch("app.api.v1.endpoints.documents.document_service")
     def test_document_processing_error(self, mock_service, mock_user, mock_db, client):
         """Test document with processing error"""
         # Mock dependencies
@@ -282,7 +302,7 @@ class TestDocumentProcessing:
             "filename": "test.pdf",
             "processed": False,
             "processing_error": "Failed to extract text",
-            "user_id": 1
+            "user_id": 1,
         }
         mock_service.get_document.return_value = error_document
 
@@ -321,11 +341,13 @@ class TestDocumentValidation:
 class TestDocumentCaching:
     """Test document caching functionality"""
 
-    @patch('app.api.v1.endpoints.documents.get_db')
-    @patch('app.api.v1.endpoints.documents.get_current_user')
-    @patch('app.api.v1.endpoints.documents.document_service')
-    @patch('app.api.v1.endpoints.documents.cache_service')
-    def test_document_caching(self, mock_cache, mock_service, mock_user, mock_db, client, mock_document):
+    @patch("app.api.v1.endpoints.documents.get_db")
+    @patch("app.api.v1.endpoints.documents.get_current_user")
+    @patch("app.api.v1.endpoints.documents.document_service")
+    @patch("app.api.v1.endpoints.documents.cache_service")
+    def test_document_caching(
+        self, mock_cache, mock_service, mock_user, mock_db, client, mock_document
+    ):
         """Test that document responses are cached"""
         # Mock dependencies
         mock_user.return_value = {"id": 1}
@@ -345,11 +367,13 @@ class TestDocumentCaching:
         mock_cache.get.assert_called_once()
         mock_cache.set.assert_called_once()
 
-    @patch('app.api.v1.endpoints.documents.get_db')
-    @patch('app.api.v1.endpoints.documents.get_current_user')
-    @patch('app.api.v1.endpoints.documents.document_service')
-    @patch('app.api.v1.endpoints.documents.cache_service')
-    def test_document_cache_hit(self, mock_cache, mock_service, mock_user, mock_db, client, mock_document):
+    @patch("app.api.v1.endpoints.documents.get_db")
+    @patch("app.api.v1.endpoints.documents.get_current_user")
+    @patch("app.api.v1.endpoints.documents.document_service")
+    @patch("app.api.v1.endpoints.documents.cache_service")
+    def test_document_cache_hit(
+        self, mock_cache, mock_service, mock_user, mock_db, client, mock_document
+    ):
         """Test document retrieval from cache"""
         # Mock dependencies
         mock_user.return_value = {"id": 1}

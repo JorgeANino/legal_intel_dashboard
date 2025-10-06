@@ -2,7 +2,6 @@
 Query service for natural language querying across documents
 """
 # Standard library imports
-import contextlib
 import time
 from typing import Any
 
@@ -17,6 +16,7 @@ from sqlalchemy.orm import selectinload
 
 # Local application imports
 from app.core.config import settings
+from app.core.logging_config import logger
 from app.models.document import Document, DocumentMetadata, Query
 
 
@@ -28,17 +28,29 @@ class QueryService:
         self.llm = None
 
         if settings.OPENAI_API_KEY:
-            with contextlib.suppress(Exception):
+            try:
                 self.llm = ChatOpenAI(
                     model="gpt-4o-mini", temperature=0, api_key=settings.OPENAI_API_KEY
                 )
+                logger.info("LLM initialized successfully using OpenAI (gpt-4o-mini)")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to initialize OpenAI LLM: {e}. Falling back to rule-based analysis."
+                )
         elif settings.ANTHROPIC_API_KEY:
-            with contextlib.suppress(Exception):
+            try:
                 self.llm = ChatAnthropic(
                     model="claude-3-5-sonnet-20241022",
                     temperature=0,
                     api_key=settings.ANTHROPIC_API_KEY,
                 )
+                logger.info("LLM initialized successfully using Anthropic (claude-3-5-sonnet)")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to initialize Anthropic LLM: {e}. Falling back to rule-based analysis."
+                )
+        else:
+            logger.info("No LLM API keys configured. Using rule-based query analysis.")
 
     async def execute_query(
         self,
@@ -49,17 +61,38 @@ class QueryService:
         page: int = 1,
         filters: dict[str, Any] | None = None,
         sort_by: str = "relevance",
-        sort_order: str = "desc"
+        sort_order: str = "desc",
     ) -> dict[str, Any]:
         """Execute natural language query against documents"""
         start_time = time.time()
 
+        logger.info(
+            "Executing query",
+            extra={
+                "question": question,
+                "user_id": user_id,
+                "max_results": max_results,
+                "page": page,
+                "filters": filters,
+            },
+        )
+
         # Step 1: Analyze query to determine what metadata fields are needed
         query_analysis = await self._analyze_query(question)
+        logger.info("Query analysis completed", extra={"analysis": query_analysis})
 
         # Step 2: Build and execute database query
         results, total_count = await self._fetch_matching_documents(
             query_analysis, user_id, db, max_results, page, filters, sort_by, sort_order
+        )
+
+        logger.info(
+            "Documents fetched",
+            extra={
+                "total_count": total_count,
+                "results_count": len(results),
+                "has_metadata": sum(1 for doc in results if doc.doc_metadata is not None),
+            },
         )
 
         # Step 3: Format results
@@ -94,6 +127,7 @@ class QueryService:
         """Analyze query to determine intent and required fields"""
 
         if not self.llm:
+            logger.info("Using rule-based query analysis (no LLM available)")
             return self._rule_based_analysis(question)
 
         prompt = ChatPromptTemplate.from_messages(
@@ -101,7 +135,7 @@ class QueryService:
                 (
                     "system",
                     """Analyze the user's question about legal documents and determine:
-1. What metadata fields are needed (agreement_type, governing_law, jurisdiction, industry, etc.)
+1. What metadata fields are needed (agreement_type, governing_law, jurisdiction, industry, geography, etc.)
 2. What filters to apply
 3. What fields to return in results
 
@@ -112,10 +146,13 @@ Return JSON with:
 
 Examples:
 Q: "Which agreements are governed by UAE law?"
-A: {"fields_needed": ["governing_law"], "filters": {"governing_law": "UAE"}, "return_fields": ["document", "governing_law"]}
+A: {{"fields_needed": ["governing_law"], "filters": {{"governing_law": "United Arab Emirates"}}, "return_fields": ["document", "governing_law"]}}
 
 Q: "Show me all NDAs"
-A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "return_fields": ["document", "agreement_type", "governing_law"]}""",
+A: {{"fields_needed": ["agreement_type"], "filters": {{"agreement_type": "NDA"}}, "return_fields": ["document", "agreement_type", "governing_law"]}}
+
+Q: "What contracts are from the Middle East?"
+A: {{"fields_needed": ["geography"], "filters": {{"geography": "Middle East"}}, "return_fields": ["document", "geography", "jurisdiction"]}}""",
                 ),
                 ("human", "Question: {question}"),
             ]
@@ -125,9 +162,12 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
         chain = prompt | self.llm | parser
 
         try:
+            logger.info("Using LLM-based query analysis")
             result = await chain.ainvoke({"question": question})
+            logger.info(f"LLM analysis result: {result}")
             return result
-        except Exception:
+        except Exception as e:
+            logger.warning(f"LLM analysis failed: {e}. Falling back to rule-based analysis.")
             return self._rule_based_analysis(question)
 
     def _rule_based_analysis(self, question: str) -> dict[str, Any]:
@@ -137,16 +177,46 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
         analysis = {
             "fields_needed": [],
             "filters": {},
-            "return_fields": ["document", "agreement_type", "governing_law"],
+            "return_fields": [
+                "document",
+                "agreement_type",
+                "governing_law",
+                "jurisdiction",
+                "geography",
+                "industry",
+            ],
         }
 
-        # Check for governing law mentions
-        if "uae" in question_lower or "dubai" in question_lower:
+        # Check for geography mentions
+        if "middle east" in question_lower or "middleeast" in question_lower:
+            analysis["fields_needed"].append("geography")
+            analysis["filters"]["geography"] = "Middle East"
+        elif "europe" in question_lower or "european" in question_lower:
+            analysis["fields_needed"].append("geography")
+            analysis["filters"]["geography"] = "Europe"
+        elif "asia" in question_lower or "asian" in question_lower:
+            analysis["fields_needed"].append("geography")
+            analysis["filters"]["geography"] = "Asia"
+        elif "north america" in question_lower or "america" in question_lower:
+            analysis["fields_needed"].append("geography")
+            analysis["filters"]["geography"] = "North America"
+
+        # Check for governing law / jurisdiction mentions
+        if "uae" in question_lower or "dubai" in question_lower or "abu dhabi" in question_lower:
             analysis["fields_needed"].append("governing_law")
-            analysis["filters"]["governing_law"] = "UAE"
-        elif "uk" in question_lower or "english" in question_lower:
+            analysis["filters"]["governing_law"] = "United Arab Emirates"
+        elif "uk" in question_lower or "england" in question_lower or "wales" in question_lower:
             analysis["fields_needed"].append("governing_law")
-            analysis["filters"]["governing_law"] = "UK"
+            analysis["filters"]["governing_law"] = "England and Wales"
+        elif "delaware" in question_lower:
+            analysis["fields_needed"].append("governing_law")
+            analysis["filters"]["governing_law"] = "Delaware"
+        elif "new york" in question_lower or "newyork" in question_lower:
+            analysis["fields_needed"].append("governing_law")
+            analysis["filters"]["governing_law"] = "New York"
+        elif "california" in question_lower:
+            analysis["fields_needed"].append("governing_law")
+            analysis["filters"]["governing_law"] = "California"
 
         # Check for agreement type mentions
         if "nda" in question_lower or "non-disclosure" in question_lower:
@@ -154,7 +224,19 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
             analysis["filters"]["agreement_type"] = "NDA"
         elif "msa" in question_lower or "master service" in question_lower:
             analysis["fields_needed"].append("agreement_type")
-            analysis["filters"]["agreement_type"] = "MSA"
+            analysis["filters"]["agreement_type"] = "Master Services Agreement"
+        elif "employment" in question_lower and "agreement" in question_lower:
+            analysis["fields_needed"].append("agreement_type")
+            analysis["filters"]["agreement_type"] = "Employment Agreement"
+        elif "license" in question_lower or "licence" in question_lower:
+            analysis["fields_needed"].append("agreement_type")
+            analysis["filters"]["agreement_type"] = "License Agreement"
+        elif "franchise" in question_lower:
+            analysis["fields_needed"].append("agreement_type")
+            analysis["filters"]["agreement_type"] = "Franchise Agreement"
+        elif "service" in question_lower and "agreement" in question_lower:
+            analysis["fields_needed"].append("agreement_type")
+            analysis["filters"]["agreement_type"] = "Service Agreement"
 
         # Check for industry mentions
         if "oil" in question_lower or "gas" in question_lower:
@@ -163,6 +245,12 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
         elif "technology" in question_lower or "tech" in question_lower:
             analysis["fields_needed"].append("industry")
             analysis["filters"]["industry"] = "Technology"
+        elif "healthcare" in question_lower or "health" in question_lower:
+            analysis["fields_needed"].append("industry")
+            analysis["filters"]["industry"] = "Healthcare"
+        elif "finance" in question_lower or "financial" in question_lower:
+            analysis["fields_needed"].append("industry")
+            analysis["filters"]["industry"] = "Finance"
 
         return analysis
 
@@ -175,7 +263,7 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
         page: int = 1,
         filters: dict[str, Any] | None = None,
         sort_by: str = "relevance",
-        sort_order: str = "desc"
+        sort_order: str = "desc",
     ) -> tuple[list[Document], int]:
         """Fetch documents matching the query criteria"""
 
@@ -183,14 +271,27 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
         stmt = (
             select(Document)
             .options(selectinload(Document.doc_metadata))
-            .where(and_(Document.user_id == user_id, Document.processed is True))
+            .where(and_(Document.user_id == user_id, Document.processed.is_(True)))
+        )
+
+        logger.info(
+            "Building query",
+            extra={
+                "user_id": user_id,
+                "query_analysis": query_analysis,
+                "additional_filters": filters,
+            },
         )
 
         # Apply filters from query analysis
         analysis_filters = query_analysis.get("filters", {})
+        needs_join = False
+
         if analysis_filters:
+            logger.info("Applying analysis filters", extra={"filters": analysis_filters})
             # Join with metadata table
             stmt = stmt.join(DocumentMetadata)
+            needs_join = True
 
             for field, value in analysis_filters.items():
                 if field == "agreement_type":
@@ -201,11 +302,15 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
                     stmt = stmt.where(DocumentMetadata.jurisdiction == value)
                 elif field == "industry":
                     stmt = stmt.where(DocumentMetadata.industry == value)
+                elif field == "geography":
+                    stmt = stmt.where(DocumentMetadata.geography == value)
 
         # Apply additional filters
         if filters:
-            if not analysis_filters:  # Only join if not already joined
+            logger.info("Applying additional filters", extra={"filters": filters})
+            if not needs_join:  # Only join if not already joined
                 stmt = stmt.join(DocumentMetadata)
+                needs_join = True
 
             if filters.get("agreement_types"):
                 stmt = stmt.where(DocumentMetadata.agreement_type.in_(filters["agreement_types"]))
@@ -215,6 +320,8 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
                 stmt = stmt.where(DocumentMetadata.industry.in_(filters["industries"]))
             if filters.get("geographies"):
                 stmt = stmt.where(DocumentMetadata.geography.in_(filters["geographies"]))
+
+        logger.info("Metadata join applied", extra={"joined": needs_join})
 
         # Apply sorting
         if sort_by == "date":
@@ -235,12 +342,25 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
         count_result = await db.execute(count_stmt)
         total_count = count_result.scalar() or 0
 
+        logger.info("Document count retrieved", extra={"total_count": total_count})
+
         # Apply pagination
         offset = (page - 1) * max_results
         stmt = stmt.offset(offset).limit(max_results)
 
         result = await db.execute(stmt)
-        return list(result.scalars().all()), total_count
+        documents = list(result.scalars().all())
+
+        logger.info(
+            "Documents retrieved",
+            extra={
+                "count": len(documents),
+                "document_ids": [doc.id for doc in documents],
+                "has_metadata": [doc.doc_metadata is not None for doc in documents],
+            },
+        )
+
+        return documents, total_count
 
     def _format_results(
         self, documents: list[Document], query_analysis: dict[str, Any]
@@ -277,7 +397,9 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
 
         return results
 
-    async def get_query_suggestions(self, query: str, limit: int, db: AsyncSession) -> dict[str, Any]:
+    async def get_query_suggestions(
+        self, query: str, limit: int, db: AsyncSession
+    ) -> dict[str, Any]:
         """
         Generate query suggestions based on:
         - Document metadata (agreement types, jurisdictions, industries)
@@ -291,7 +413,7 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
             "agreement_types": [],
             "jurisdictions": [],
             "industries": [],
-            "geographies": []
+            "geographies": [],
         }
 
         if len(query) < 2:
@@ -299,7 +421,7 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
                 "suggestions": suggestions,
                 "popular_queries": popular_queries,
                 "legal_terms": legal_terms,
-                "metadata_suggestions": metadata_suggestions
+                "metadata_suggestions": metadata_suggestions,
             }
 
         query_lower = query.lower()
@@ -307,7 +429,7 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
         # Get popular queries from database
         try:
             popular_stmt = (
-                select(Query.query_text, func.count(Query.id).label('count'))
+                select(Query.query_text, func.count(Query.id).label("count"))
                 .where(Query.query_text.ilike(f"%{query}%"))
                 .group_by(Query.query_text)
                 .order_by(func.count(Query.id).desc())
@@ -322,13 +444,15 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
         try:
             # Agreement types
             agreement_stmt = (
-                select(DocumentMetadata.agreement_type, func.count(DocumentMetadata.id).label('count'))
+                select(
+                    DocumentMetadata.agreement_type, func.count(DocumentMetadata.id).label("count")
+                )
                 .join(Document)
                 .where(
                     and_(
-                        Document.processed,
+                        Document.processed.is_(True),
                         DocumentMetadata.agreement_type.ilike(f"%{query}%"),
-                        DocumentMetadata.agreement_type.isnot(None)
+                        DocumentMetadata.agreement_type.isnot(None),
                     )
                 )
                 .group_by(DocumentMetadata.agreement_type)
@@ -336,17 +460,21 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
                 .limit(5)
             )
             agreement_result = await db.execute(agreement_stmt)
-            metadata_suggestions["agreement_types"] = [row[0] for row in agreement_result.fetchall()]
+            metadata_suggestions["agreement_types"] = [
+                row[0] for row in agreement_result.fetchall()
+            ]
 
             # Jurisdictions
             jurisdiction_stmt = (
-                select(DocumentMetadata.jurisdiction, func.count(DocumentMetadata.id).label('count'))
+                select(
+                    DocumentMetadata.jurisdiction, func.count(DocumentMetadata.id).label("count")
+                )
                 .join(Document)
                 .where(
                     and_(
-                        Document.processed,
+                        Document.processed.is_(True),
                         DocumentMetadata.jurisdiction.ilike(f"%{query}%"),
-                        DocumentMetadata.jurisdiction.isnot(None)
+                        DocumentMetadata.jurisdiction.isnot(None),
                     )
                 )
                 .group_by(DocumentMetadata.jurisdiction)
@@ -354,17 +482,19 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
                 .limit(5)
             )
             jurisdiction_result = await db.execute(jurisdiction_stmt)
-            metadata_suggestions["jurisdictions"] = [row[0] for row in jurisdiction_result.fetchall()]
+            metadata_suggestions["jurisdictions"] = [
+                row[0] for row in jurisdiction_result.fetchall()
+            ]
 
             # Industries
             industry_stmt = (
-                select(DocumentMetadata.industry, func.count(DocumentMetadata.id).label('count'))
+                select(DocumentMetadata.industry, func.count(DocumentMetadata.id).label("count"))
                 .join(Document)
                 .where(
                     and_(
-                        Document.processed,
+                        Document.processed.is_(True),
                         DocumentMetadata.industry.ilike(f"%{query}%"),
-                        DocumentMetadata.industry.isnot(None)
+                        DocumentMetadata.industry.isnot(None),
                     )
                 )
                 .group_by(DocumentMetadata.industry)
@@ -376,13 +506,13 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
 
             # Geographies
             geography_stmt = (
-                select(DocumentMetadata.geography, func.count(DocumentMetadata.id).label('count'))
+                select(DocumentMetadata.geography, func.count(DocumentMetadata.id).label("count"))
                 .join(Document)
                 .where(
                     and_(
-                        Document.processed,
+                        Document.processed.is_(True),
                         DocumentMetadata.geography.ilike(f"%{query}%"),
-                        DocumentMetadata.geography.isnot(None)
+                        DocumentMetadata.geography.isnot(None),
                     )
                 )
                 .group_by(DocumentMetadata.geography)
@@ -397,34 +527,46 @@ A: {"fields_needed": ["agreement_type"], "filters": {"agreement_type": "NDA"}, "
 
         # Generate general suggestions based on query patterns
         if "which" in query_lower or "what" in query_lower:
-            suggestions.extend([
-                f"Which agreements are governed by {query} law?",
-                f"What {query} contracts do we have?",
-                f"Show me all {query} agreements"
-            ])
+            suggestions.extend(
+                [
+                    f"Which agreements are governed by {query} law?",
+                    f"What {query} contracts do we have?",
+                    f"Show me all {query} agreements",
+                ]
+            )
         elif "show" in query_lower or "list" in query_lower:
-            suggestions.extend([
-                f"Show me all {query} documents",
-                f"List {query} contracts",
-                f"Find {query} agreements"
-            ])
+            suggestions.extend(
+                [
+                    f"Show me all {query} documents",
+                    f"List {query} contracts",
+                    f"Find {query} agreements",
+                ]
+            )
         else:
-            suggestions.extend([
-                f"Which agreements are governed by {query} law?",
-                f"Show me all {query} contracts",
-                f"Find {query} agreements",
-                f"What {query} documents do we have?"
-            ])
+            suggestions.extend(
+                [
+                    f"Which agreements are governed by {query} law?",
+                    f"Show me all {query} contracts",
+                    f"Find {query} agreements",
+                    f"What {query} documents do we have?",
+                ]
+            )
 
         # Add legal terms
         legal_terms = [
-            "governing law", "jurisdiction", "agreement type", "contract value",
-            "effective date", "expiration date", "parties", "industry"
+            "governing law",
+            "jurisdiction",
+            "agreement type",
+            "contract value",
+            "effective date",
+            "expiration date",
+            "parties",
+            "industry",
         ]
 
         return {
             "suggestions": suggestions[:limit],
             "popular_queries": popular_queries,
             "legal_terms": legal_terms,
-            "metadata_suggestions": metadata_suggestions
+            "metadata_suggestions": metadata_suggestions,
         }

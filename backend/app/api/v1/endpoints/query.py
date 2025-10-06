@@ -7,7 +7,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.security import get_current_user
 from app.middleware.rate_limit import rate_limit_dependency
+from app.models.user import User
 from app.schemas.document import QueryRequest, QueryResponse, QuerySuggestionsResponse
 from app.services.query_service import QueryService
 
@@ -18,11 +20,12 @@ router = APIRouter()
 @router.post("", response_model=QueryResponse)
 async def query_documents(
     request: QueryRequest,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     _rate_limit: None = Depends(rate_limit_dependency),
 ):
     """
-    Mass interrogation endpoint
+    Mass interrogation endpoint (Protected - requires JWT token)
 
     Execute natural language queries across all documents:
     - "Which agreements are governed by UAE law?"
@@ -32,20 +35,21 @@ async def query_documents(
     Returns structured results matching the query
 
     Rate limit: 50 requests per minute
+
+    Authorization: Bearer <JWT token>
     """
     service = QueryService()
-    user_id = 1  # Mock user_id
 
     try:
         results = await service.execute_query(
             question=request.question,
-            user_id=user_id,
+            user_id=current_user.id,
             db=db,
             max_results=request.max_results or 50,
             page=request.page or 1,
             filters=request.filters,
             sort_by=request.sort_by or "relevance",
-            sort_order=request.sort_order or "desc"
+            sort_order=request.sort_order or "desc",
         )
         return results
 
@@ -57,16 +61,19 @@ async def query_documents(
 async def get_query_suggestions(
     q: str,
     limit: int = 10,
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """
-    Get query suggestions based on partial input
+    Get query suggestions based on partial input (Protected - requires JWT token)
 
     Returns:
     - suggestions: Generated query suggestions
     - popular_queries: Popular queries from database
     - legal_terms: Common legal terminology
     - metadata_suggestions: Available filter options
+
+    Authorization: Bearer <JWT token>
     """
     service = QueryService()
 

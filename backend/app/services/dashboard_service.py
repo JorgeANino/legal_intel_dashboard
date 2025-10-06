@@ -45,7 +45,7 @@ class DashboardService:
         # Get processed documents
         processed_docs_result = await db.execute(
             select(func.count(Document.id)).where(
-                and_(Document.user_id == user_id, Document.processed is True)
+                and_(Document.user_id == user_id, Document.processed.is_(True))
             )
         )
         processed_documents = processed_docs_result.scalar() or 0

@@ -13,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.security import get_current_user
 from app.models.user import User
 from app.schemas.user import UserBase, UserCreate, UserResponse
 
@@ -20,14 +21,19 @@ from app.schemas.user import UserBase, UserCreate, UserResponse
 router = APIRouter()
 
 
-
-
 @router.get("", response_model=list[UserResponse])
-async def list_users(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)):
+async def list_users(
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     """
-    List all users
+    List all users (Protected - requires JWT token)
 
     Returns paginated list of users from database.
+
+    Authorization: Bearer <JWT token>
     """
     result = await db.execute(select(User).offset(skip).limit(limit))
     users = result.scalars().all()
@@ -35,12 +41,23 @@ async def list_users(skip: int = 0, limit: int = 100, db: AsyncSession = Depends
 
 
 @router.get("/{user_id}", response_model=UserResponse)
-async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
+async def get_user(
+    user_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
     """
-    Get user by ID
+    Get user by ID (Protected - requires JWT token)
 
-    Returns user details if found.
+    Returns user details if found. Users can only view their own profile
+    unless they are superusers.
+
+    Authorization: Bearer <JWT token>
     """
+    # Check if user is requesting their own data or is a superuser
+    if user_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this user"
+        )
+
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
 
@@ -87,12 +104,26 @@ async def create_user(user_data: UserCreate, db: AsyncSession = Depends(get_db))
 
 
 @router.put("/{user_id}", response_model=UserResponse)
-async def update_user(user_id: int, user_data: UserBase, db: AsyncSession = Depends(get_db)):
+async def update_user(
+    user_id: int,
+    user_data: UserBase,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     """
-    Update user details
+    Update user details (Protected - requires JWT token)
 
     Updates email, full_name, and is_active status.
+    Users can only update their own profile unless they are superusers.
+
+    Authorization: Bearer <JWT token>
     """
+    # Check if user is updating their own data or is a superuser
+    if user_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this user"
+        )
+
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
 
@@ -113,13 +144,24 @@ async def update_user(user_id: int, user_data: UserBase, db: AsyncSession = Depe
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(user_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_user(
+    user_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
     """
-    Delete user
+    Delete user (Protected - requires JWT token, admin only)
 
     Removes user from database.
     Note: In production, consider soft-delete to preserve data integrity.
+
+    Authorization: Bearer <JWT token>
+    Requires: Superuser role
     """
+    # Only superusers can delete users
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can delete users"
+        )
+
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
 
