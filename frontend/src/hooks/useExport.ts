@@ -11,7 +11,7 @@ export const useExport = () => {
 
   const downloadFile = (blob: Blob, filename: string) => {
     if (typeof window === 'undefined') return;
-    
+
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -30,12 +30,12 @@ export const useExport = () => {
         user_id: 1, // Mock user ID
         max_results: data.total_results,
         filters: data.filters_applied,
-        filename: `query-results-${Date.now()}`
+        filename: `query-results-${Date.now()}`,
       };
 
       const blob = await exportApi.exportQueryResultsCSV(request);
       downloadFile(blob, `query-results-${Date.now()}.csv`);
-      
+
       toast.success('CSV exported successfully!');
     } catch (error: any) {
       console.error('CSV export failed:', error);
@@ -54,12 +54,12 @@ export const useExport = () => {
         user_id: 1, // Mock user ID
         max_results: data.total_results,
         filters: data.filters_applied,
-        filename: `query-results-${Date.now()}`
+        filename: `query-results-${Date.now()}`,
       };
 
       const blob = await exportApi.exportQueryResultsPDF(request);
       downloadFile(blob, `query-results-${Date.now()}.pdf`);
-      
+
       toast.success('PDF exported successfully!');
     } catch (error: any) {
       console.error('PDF export failed:', error);
@@ -75,13 +75,13 @@ export const useExport = () => {
     try {
       const request: DashboardExportRequest = {
         user_id: 1, // Mock user ID
-        include_charts: true
+        include_charts: true,
       };
 
       const blob = await exportApi.exportDashboardReportPDF(request);
       const filename = `dashboard-report-${new Date().toISOString().split('T')[0]}.pdf`;
       downloadFile(blob, filename);
-      
+
       toast.success('Dashboard report exported successfully!');
     } catch (error: any) {
       console.error('Dashboard export failed:', error);
@@ -96,6 +96,6 @@ export const useExport = () => {
     exportToCSV,
     exportToPDF,
     exportDashboardReport,
-    isExporting
+    isExporting,
   };
 };

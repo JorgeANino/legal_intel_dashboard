@@ -25,9 +25,13 @@ export const queryApi = {
   /**
    * Get query suggestions based on partial input
    */
-  getSuggestions: async (query: string, limit: number = 10): Promise<QuerySuggestionsResponse> => {
-    const response = await apiClient.get(`/query/suggestions?q=${encodeURIComponent(query)}&limit=${limit}`);
+  getSuggestions: async (
+    query: string,
+    limit: number = 10,
+  ): Promise<QuerySuggestionsResponse> => {
+    const response = await apiClient.get(
+      `/query/suggestions?q=${encodeURIComponent(query)}&limit=${limit}`,
+    );
     return response.data;
   },
 };
-

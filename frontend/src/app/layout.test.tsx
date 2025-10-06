@@ -5,24 +5,25 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 
 import RootLayout from './layout';
 
-
 // Mock the hooks and components
 jest.mock('@/hooks/useWebSocket');
 jest.mock('@/providers/QueryProvider', () => ({
   QueryProvider: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="query-provider">{children}</div>
+    <div data-testid='query-provider'>{children}</div>
   ),
 }));
 jest.mock('@/context/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="auth-provider">{children}</div>
+    <div data-testid='auth-provider'>{children}</div>
   ),
 }));
 jest.mock('react-hot-toast', () => ({
-  Toaster: () => <div data-testid="toaster">Toaster</div>,
+  Toaster: () => <div data-testid='toaster'>Toaster</div>,
 }));
 
-const mockUseWebSocket = useWebSocket as jest.MockedFunction<typeof useWebSocket>;
+const mockUseWebSocket = useWebSocket as jest.MockedFunction<
+  typeof useWebSocket
+>;
 
 // Create a test wrapper with QueryClient
 const createTestWrapper = () => {
@@ -34,9 +35,7 @@ const createTestWrapper = () => {
   });
 
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 
@@ -45,7 +44,7 @@ describe('RootLayout', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Default mock implementation
     mockUseWebSocket.mockReturnValue({
       isConnected: true,
@@ -56,9 +55,9 @@ describe('RootLayout', () => {
   it('renders layout with all providers', () => {
     render(
       <RootLayout>
-        <div data-testid="test-children">Test Content</div>
+        <div data-testid='test-children'>Test Content</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     expect(screen.getByTestId('query-provider')).toBeInTheDocument();
@@ -72,7 +71,7 @@ describe('RootLayout', () => {
       <RootLayout>
         <div>Test Content</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     const htmlElement = document.documentElement;
@@ -84,7 +83,7 @@ describe('RootLayout', () => {
       <RootLayout>
         <div>Test Content</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     const bodyElement = document.body;
@@ -96,7 +95,7 @@ describe('RootLayout', () => {
       <RootLayout>
         <div>Test Content</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     // The globals.css should be imported and applied
@@ -109,7 +108,7 @@ describe('RootLayout', () => {
       <RootLayout>
         <div>Test Content</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     expect(mockUseWebSocket).toHaveBeenCalledWith(1);
@@ -125,7 +124,7 @@ describe('RootLayout', () => {
       <RootLayout>
         <div>Test Content</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     expect(screen.getByText('Reconnecting...')).toBeInTheDocument();
@@ -141,7 +140,7 @@ describe('RootLayout', () => {
       <RootLayout>
         <div>Test Content</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     expect(screen.queryByText('Reconnecting...')).not.toBeInTheDocument();
@@ -152,7 +151,7 @@ describe('RootLayout', () => {
       <RootLayout>
         <div>Test Content</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     expect(screen.getByTestId('toaster')).toBeInTheDocument();
@@ -161,9 +160,9 @@ describe('RootLayout', () => {
   it('wraps children in correct provider hierarchy', () => {
     render(
       <RootLayout>
-        <div data-testid="test-children">Test Content</div>
+        <div data-testid='test-children'>Test Content</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     // Check the hierarchy: QueryProvider > AuthProvider > WebSocketProvider > children
@@ -178,11 +177,11 @@ describe('RootLayout', () => {
   it('renders multiple children correctly', () => {
     render(
       <RootLayout>
-        <div data-testid="child-1">Child 1</div>
-        <div data-testid="child-2">Child 2</div>
-        <div data-testid="child-3">Child 3</div>
+        <div data-testid='child-1'>Child 1</div>
+        <div data-testid='child-2'>Child 2</div>
+        <div data-testid='child-3'>Child 3</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     expect(screen.getByTestId('child-1')).toBeInTheDocument();
@@ -191,12 +190,7 @@ describe('RootLayout', () => {
   });
 
   it('handles empty children gracefully', () => {
-    render(
-      <RootLayout>
-        {null}
-      </RootLayout>,
-      { wrapper: createTestWrapper() }
-    );
+    render(<RootLayout>{null}</RootLayout>, { wrapper: createTestWrapper() });
 
     expect(screen.getByTestId('query-provider')).toBeInTheDocument();
     expect(screen.getByTestId('auth-provider')).toBeInTheDocument();
@@ -207,7 +201,7 @@ describe('RootLayout', () => {
       <RootLayout>
         <div>Test Content</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     // Check that the basic HTML structure is correct
@@ -220,7 +214,7 @@ describe('RootLayout', () => {
       <RootLayout>
         <div>Test Content</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     const bodyElement = document.body;
@@ -237,7 +231,7 @@ describe('RootLayout', () => {
       <RootLayout>
         <div>Test Content</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     const reconnectionIndicator = screen.getByText('Reconnecting...');
@@ -251,7 +245,7 @@ describe('RootLayout', () => {
       'py-2',
       'rounded-lg',
       'text-sm',
-      'shadow-lg'
+      'shadow-lg',
     );
   });
 
@@ -260,7 +254,7 @@ describe('RootLayout', () => {
       <RootLayout>
         <div>Test Content</div>
       </RootLayout>,
-      { wrapper: createTestWrapper() }
+      { wrapper: createTestWrapper() },
     );
 
     // Initially connected
@@ -275,7 +269,7 @@ describe('RootLayout', () => {
     rerender(
       <RootLayout>
         <div>Test Content</div>
-      </RootLayout>
+      </RootLayout>,
     );
 
     expect(screen.getByText('Reconnecting...')).toBeInTheDocument();

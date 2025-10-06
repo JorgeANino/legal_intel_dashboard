@@ -7,12 +7,16 @@ export const documentsApi = {
    */
   uploadDocuments: async (
     files: File[],
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<UploadResponse> => {
     const formData = new FormData();
     files.forEach((file) => formData.append('files', file));
 
-    const response = await uploadWithProgress('/documents/upload', formData, onProgress);
+    const response = await uploadWithProgress(
+      '/documents/upload',
+      formData,
+      onProgress,
+    );
     return response.data;
   },
 
@@ -34,4 +38,3 @@ export const documentsApi = {
     return response.data;
   },
 };
-

@@ -13,7 +13,9 @@ jest.mock('@/hooks/useExport');
 jest.mock('@/guards/AuthGuard');
 jest.mock('next/navigation');
 
-const mockUseDashboard = useDashboard as jest.MockedFunction<typeof useDashboard>;
+const mockUseDashboard = useDashboard as jest.MockedFunction<
+  typeof useDashboard
+>;
 const mockUseExport = useExport as jest.MockedFunction<typeof useExport>;
 const mockAuthGuard = AuthGuard as jest.MockedFunction<typeof AuthGuard>;
 
@@ -23,32 +25,32 @@ const mockStats = {
   processed_documents: 140,
   total_pages: 2500,
   agreement_types: {
-    'NDA': 45,
-    'MSA': 30,
+    NDA: 45,
+    MSA: 30,
     'Service Agreement': 25,
     'License Agreement': 20,
-    'Franchise Agreement': 10
+    'Franchise Agreement': 10,
   },
   jurisdictions: {
-    'Delaware': 60,
+    Delaware: 60,
     'New York': 40,
-    'California': 30,
-    'UAE': 15,
-    'UK': 5
+    California: 30,
+    UAE: 15,
+    UK: 5,
   },
   industries: {
-    'Technology': 80,
-    'Healthcare': 35,
-    'Finance': 20,
+    Technology: 80,
+    Healthcare: 35,
+    Finance: 20,
     'Oil & Gas': 10,
-    'Real Estate': 5
+    'Real Estate': 5,
   },
   geographies: {
     'North America': 120,
-    'Europe': 20,
+    Europe: 20,
     'Middle East': 8,
-    'Asia': 2
-  }
+    Asia: 2,
+  },
 };
 
 // Create a test wrapper with QueryClient
@@ -61,9 +63,7 @@ const createTestWrapper = () => {
   });
 
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 
@@ -75,10 +75,12 @@ describe('DashboardPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock AuthGuard to render children directly
-    mockAuthGuard.mockImplementation(({ children }) => <div data-testid="auth-guard">{children}</div>);
-    
+    mockAuthGuard.mockImplementation(({ children }) => (
+      <div data-testid='auth-guard'>{children}</div>
+    ));
+
     // Default mock implementations
     mockUseDashboard.mockReturnValue({
       stats: mockStats,
@@ -99,7 +101,9 @@ describe('DashboardPage', () => {
     render(<DashboardPage />, { wrapper: createTestWrapper() });
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Overview of your legal document collection')).toBeInTheDocument();
+    expect(
+      screen.getByText('Overview of your legal document collection'),
+    ).toBeInTheDocument();
     expect(screen.getByText('Export Report')).toBeInTheDocument();
   });
 
@@ -240,7 +244,7 @@ describe('DashboardPage', () => {
       agreement_types: {},
       jurisdictions: {},
       industries: {},
-      geographies: {}
+      geographies: {},
     };
 
     mockUseDashboard.mockReturnValue({
@@ -263,9 +267,9 @@ describe('DashboardPage', () => {
     expect(screen.getByTestId('auth-guard')).toBeInTheDocument();
     expect(mockAuthGuard).toHaveBeenCalledWith(
       expect.objectContaining({
-        children: expect.any(Object)
+        children: expect.any(Object),
       }),
-      {}
+      {},
     );
   });
 });

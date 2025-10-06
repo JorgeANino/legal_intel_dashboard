@@ -26,9 +26,12 @@ export const useWebSocket = (userId: number = 1) => {
   const connect = useCallback(() => {
     // Only run in browser and when mounted
     if (typeof window === 'undefined' || !isMountedRef.current) return;
-    
+
     // Prevent duplicate connections
-    if (isConnectingRef.current || wsRef.current?.readyState === WebSocket.OPEN) {
+    if (
+      isConnectingRef.current ||
+      wsRef.current?.readyState === WebSocket.OPEN
+    ) {
       return;
     }
 
@@ -38,7 +41,8 @@ export const useWebSocket = (userId: number = 1) => {
       // Determine WebSocket URL based on environment
       const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       // Extract base host from API_URL (remove protocol and any path segments)
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
       const wsHost = apiUrl.replace(/^https?:\/\//, '').split('/')[0];
       const wsUrl = `${wsProtocol}//${wsHost}/api/v1/ws/${userId}`;
 
@@ -51,11 +55,11 @@ export const useWebSocket = (userId: number = 1) => {
           ws.close(1000);
           return;
         }
-        
+
         console.log('WebSocket connected');
         isConnectingRef.current = false;
         setIsConnected(true);
-        
+
         // Clear any pending reconnection attempts
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
@@ -65,10 +69,10 @@ export const useWebSocket = (userId: number = 1) => {
 
       ws.onmessage = (event) => {
         if (!isMountedRef.current) return;
-        
+
         try {
           const data: DocumentUpdate = JSON.parse(event.data);
-          
+
           if (data.type === 'document_update') {
             console.log(`Document ${data.document_id} update:`, data.status);
 
@@ -83,7 +87,7 @@ export const useWebSocket = (userId: number = 1) => {
                       processed: data.status.processed,
                       processing_error: data.status.processing_error,
                     }
-                  : doc
+                  : doc,
               );
             });
 
@@ -107,7 +111,7 @@ export const useWebSocket = (userId: number = 1) => {
         console.log(`WebSocket closed (code: ${event.code})`);
         isConnectingRef.current = false;
         wsRef.current = null;
-        
+
         if (isMountedRef.current) {
           setIsConnected(false);
         }
@@ -125,7 +129,7 @@ export const useWebSocket = (userId: number = 1) => {
     } catch (error) {
       console.error('Error creating WebSocket:', error);
       isConnectingRef.current = false;
-      
+
       // Retry connection after 3 seconds if still mounted
       if (isMountedRef.current) {
         reconnectTimeoutRef.current = setTimeout(() => {
@@ -145,17 +149,20 @@ export const useWebSocket = (userId: number = 1) => {
     if (wsRef.current) {
       const ws = wsRef.current;
       const readyState = ws.readyState;
-      
+
       // Only close if not already closing/closed
-      if (readyState === WebSocket.OPEN || readyState === WebSocket.CONNECTING) {
+      if (
+        readyState === WebSocket.OPEN ||
+        readyState === WebSocket.CONNECTING
+      ) {
         console.log('Disconnecting WebSocket');
         ws.close(1000); // Normal closure
       }
-      
+
       wsRef.current = null;
       setIsConnected(false);
     }
-    
+
     isConnectingRef.current = false;
   }, []);
 

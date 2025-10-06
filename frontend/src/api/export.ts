@@ -25,9 +25,13 @@ export const exportApi = {
    * Export query results as CSV
    */
   exportQueryResultsCSV: async (request: ExportRequest): Promise<Blob> => {
-    const response = await apiClient.post('/export/query-results/csv', request, {
-      responseType: 'blob'
-    });
+    const response = await apiClient.post(
+      '/export/query-results/csv',
+      request,
+      {
+        responseType: 'blob',
+      },
+    );
     return response.data;
   },
 
@@ -35,19 +39,29 @@ export const exportApi = {
    * Export query results as PDF
    */
   exportQueryResultsPDF: async (request: ExportRequest): Promise<Blob> => {
-    const response = await apiClient.post('/export/query-results/pdf', request, {
-      responseType: 'blob'
-    });
+    const response = await apiClient.post(
+      '/export/query-results/pdf',
+      request,
+      {
+        responseType: 'blob',
+      },
+    );
     return response.data;
   },
 
   /**
    * Export dashboard report as PDF
    */
-  exportDashboardReportPDF: async (request: DashboardExportRequest): Promise<Blob> => {
-    const response = await apiClient.post('/export/dashboard-report/pdf', request, {
-      responseType: 'blob'
-    });
+  exportDashboardReportPDF: async (
+    request: DashboardExportRequest,
+  ): Promise<Blob> => {
+    const response = await apiClient.post(
+      '/export/dashboard-report/pdf',
+      request,
+      {
+        responseType: 'blob',
+      },
+    );
     return response.data;
-  }
+  },
 };

@@ -6,12 +6,13 @@ import { useDocuments } from '@/hooks/useDocuments';
 
 import UploadPage from './page';
 
-
 // Mock the hooks and components
 jest.mock('@/hooks/useDocuments');
 jest.mock('@/guards/AuthGuard');
 
-const mockUseDocuments = useDocuments as jest.MockedFunction<typeof useDocuments>;
+const mockUseDocuments = useDocuments as jest.MockedFunction<
+  typeof useDocuments
+>;
 const mockAuthGuard = AuthGuard as jest.MockedFunction<typeof AuthGuard>;
 
 // Mock document data
@@ -27,8 +28,8 @@ const mockDocuments = [
     metadata: {
       agreement_type: 'NDA',
       jurisdiction: 'Delaware',
-      industry: 'Technology'
-    }
+      industry: 'Technology',
+    },
   },
   {
     id: 2,
@@ -38,7 +39,7 @@ const mockDocuments = [
     processed: false,
     processing_error: null,
     user_id: 1,
-    metadata: null
+    metadata: null,
   },
   {
     id: 3,
@@ -48,8 +49,8 @@ const mockDocuments = [
     processed: false,
     processing_error: 'Failed to extract text from PDF',
     user_id: 1,
-    metadata: null
-  }
+    metadata: null,
+  },
 ];
 
 // Create a test wrapper with QueryClient
@@ -62,19 +63,19 @@ const createTestWrapper = () => {
   });
 
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 
 describe('UploadPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock AuthGuard to render children directly
-    mockAuthGuard.mockImplementation(({ children }) => <div data-testid="auth-guard">{children}</div>);
-    
+    mockAuthGuard.mockImplementation(({ children }) => (
+      <div data-testid='auth-guard'>{children}</div>
+    ));
+
     // Default mock implementation
     mockUseDocuments.mockReturnValue({
       documents: mockDocuments,
@@ -88,7 +89,11 @@ describe('UploadPage', () => {
     render(<UploadPage />, { wrapper: createTestWrapper() });
 
     expect(screen.getByText('Upload Legal Documents')).toBeInTheDocument();
-    expect(screen.getByText('Upload PDF or DOCX files for AI-powered metadata extraction and analysis')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Upload PDF or DOCX files for AI-powered metadata extraction and analysis',
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByText('Recent Documents')).toBeInTheDocument();
   });
 
@@ -139,7 +144,10 @@ describe('UploadPage', () => {
     render(<UploadPage />, { wrapper: createTestWrapper() });
 
     const failedStatus = screen.getByText('Failed');
-    expect(failedStatus).toHaveAttribute('title', 'Failed to extract text from PDF');
+    expect(failedStatus).toHaveAttribute(
+      'title',
+      'Failed to extract text from PDF',
+    );
   });
 
   it('displays formatted upload dates', () => {
@@ -201,7 +209,7 @@ describe('UploadPage', () => {
       processed: true,
       processing_error: null,
       user_id: 1,
-      metadata: null
+      metadata: null,
     }));
 
     mockUseDocuments.mockReturnValue({
@@ -224,9 +232,9 @@ describe('UploadPage', () => {
     expect(screen.getByTestId('auth-guard')).toBeInTheDocument();
     expect(mockAuthGuard).toHaveBeenCalledWith(
       expect.objectContaining({
-        children: expect.any(Object)
+        children: expect.any(Object),
       }),
-      {}
+      {},
     );
   });
 
@@ -234,15 +242,23 @@ describe('UploadPage', () => {
     render(<UploadPage />, { wrapper: createTestWrapper() });
 
     // Check for main container classes
-    const mainContainer = screen.getByTestId('auth-guard').querySelector('.max-w-7xl');
+    const mainContainer = screen
+      .getByTestId('auth-guard')
+      .querySelector('.max-w-7xl');
     expect(mainContainer).toBeInTheDocument();
   });
 
   it('displays proper page title and description', () => {
     render(<UploadPage />, { wrapper: createTestWrapper() });
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Upload Legal Documents' })).toBeInTheDocument();
-    expect(screen.getByText('Upload PDF or DOCX files for AI-powered metadata extraction and analysis')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Upload Legal Documents' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Upload PDF or DOCX files for AI-powered metadata extraction and analysis',
+      ),
+    ).toBeInTheDocument();
   });
 
   it('renders document icons for each document', () => {

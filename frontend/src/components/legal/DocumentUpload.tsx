@@ -10,7 +10,9 @@ import { ErrorDisplay } from '../ui/ErrorDisplay';
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const ACCEPTED_TYPES = {
   'application/pdf': ['.pdf'],
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': [
+    '.docx',
+  ],
 };
 
 export const DocumentUpload = () => {
@@ -52,7 +54,7 @@ export const DocumentUpload = () => {
         setError('An error occurred while processing files. Please try again.');
       }
     },
-    [uploadDocuments]
+    [uploadDocuments],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -67,7 +69,7 @@ export const DocumentUpload = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       <div
         {...getRootProps()}
         className={`
@@ -78,30 +80,32 @@ export const DocumentUpload = () => {
         `}
       >
         <input {...getInputProps()} />
-        
-        <div className="flex flex-col items-center space-y-4">
+
+        <div className='flex flex-col items-center space-y-4'>
           <svg
-            className="w-16 h-16 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+            className='w-16 h-16 text-gray-400'
+            fill='none'
+            stroke='currentColor'
+            viewBox='0 0 24 24'
           >
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              strokeLinecap='round'
+              strokeLinejoin='round'
               strokeWidth={2}
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+              d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'
             />
           </svg>
 
           {isDragActive ? (
-            <p className="text-lg font-medium text-primary">Drop files here...</p>
+            <p className='text-lg font-medium text-primary'>
+              Drop files here...
+            </p>
           ) : (
             <>
-              <p className="text-lg font-medium">
+              <p className='text-lg font-medium'>
                 Drag & drop legal documents here, or click to select
               </p>
-              <p className="text-sm text-gray-500">
+              <p className='text-sm text-gray-500'>
                 Supports PDF and DOCX files (max 50MB each)
               </p>
             </>
@@ -111,18 +115,18 @@ export const DocumentUpload = () => {
 
       {/* Upload Progress */}
       {isUploading && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium">Uploading documents...</span>
-            <span className="text-gray-500">{uploadProgress}%</span>
+        <div className='space-y-2'>
+          <div className='flex items-center justify-between text-sm'>
+            <span className='font-medium'>Uploading documents...</span>
+            <span className='text-gray-500'>{uploadProgress}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div className='w-full bg-gray-200 rounded-full h-2 overflow-hidden'>
             <div
-              className="bg-primary h-2 rounded-full transition-all duration-300"
+              className='bg-primary h-2 rounded-full transition-all duration-300'
               style={{ width: `${uploadProgress}%` }}
             />
           </div>
-          <p className="text-sm text-gray-500">
+          <p className='text-sm text-gray-500'>
             Processing will continue in the background
           </p>
         </div>
@@ -131,7 +135,7 @@ export const DocumentUpload = () => {
       {/* General Error */}
       {error && (
         <ErrorDisplay
-          title="Upload Error"
+          title='Upload Error'
           message={error}
           onDismiss={() => setError(null)}
         />
@@ -140,7 +144,7 @@ export const DocumentUpload = () => {
       {/* Rejected Files */}
       {rejectedFiles.length > 0 && (
         <ErrorDisplay
-          title="Some files were rejected"
+          title='Some files were rejected'
           errors={rejectedFiles}
           onDismiss={() => setRejectedFiles([])}
         />
@@ -148,4 +152,3 @@ export const DocumentUpload = () => {
     </div>
   );
 };
-

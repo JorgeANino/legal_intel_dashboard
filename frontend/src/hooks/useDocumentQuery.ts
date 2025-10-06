@@ -15,7 +15,7 @@ export const useDocumentQuery = () => {
     page: 1,
     filters: {},
     sort_by: 'relevance',
-    sort_order: 'desc'
+    sort_order: 'desc',
   });
 
   const queryMutation = useMutation({
@@ -23,7 +23,7 @@ export const useDocumentQuery = () => {
     onSuccess: (data) => {
       // Add to history
       setQueryHistory((prev) => [data, ...prev].slice(0, 10)); // Keep last 10
-      
+
       if (data.total_results === 0) {
         toast('No documents match your query');
       }
@@ -52,7 +52,12 @@ export const useDocumentQuery = () => {
   };
 
   const changeSort = (sortBy: string, sortOrder: string) => {
-    const newParams = { ...queryParams, sort_by: sortBy as any, sort_order: sortOrder as any, page: 1 };
+    const newParams = {
+      ...queryParams,
+      sort_by: sortBy as any,
+      sort_order: sortOrder as any,
+      page: 1,
+    };
     setQueryParams(newParams);
     queryMutation.mutate(newParams);
   };
@@ -70,4 +75,3 @@ export const useDocumentQuery = () => {
     clearHistory: () => setQueryHistory([]),
   };
 };
-

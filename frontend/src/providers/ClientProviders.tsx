@@ -18,7 +18,7 @@ function WebSocketProvider({ children }: { children: React.ReactNode }) {
       {children}
       {/* Optional: Show connection status indicator */}
       {!isConnected && (
-        <div className="fixed bottom-4 right-4 bg-yellow-100 text-yellow-800 px-3 py-2 rounded-lg text-sm shadow-lg">
+        <div className='fixed bottom-4 right-4 bg-yellow-100 text-yellow-800 px-3 py-2 rounded-lg text-sm shadow-lg'>
           Reconnecting...
         </div>
       )}
@@ -30,11 +30,9 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
     <QueryProvider>
       <AuthProvider>
-        <WebSocketProvider>
-          {children}
-        </WebSocketProvider>
+        <WebSocketProvider>{children}</WebSocketProvider>
       </AuthProvider>
-      <Toaster position="top-right" />
+      <Toaster position='top-right' />
     </QueryProvider>
   );
 }

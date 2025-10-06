@@ -1,7 +1,8 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
 
 // API base configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 const API_TIMEOUT = 30000; // 30 seconds
 
 // Create axios instance
@@ -18,20 +19,20 @@ apiClient.interceptors.request.use(
   (config) => {
     // Add timestamp for request tracking
     config.metadata = { startTime: Date.now() };
-    
+
     // Add auth token if available (for future use)
     // const token = localStorage.getItem('auth_token');
     // if (token) {
     //   config.headers.Authorization = `Bearer ${token}`;
     // }
-    
+
     console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error) => {
     console.error('Request Error:', error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor - handle errors, logging
@@ -43,35 +44,38 @@ apiClient.interceptors.response.use(
   },
   async (error: AxiosError) => {
     const duration = Date.now() - (error.config?.metadata?.startTime || 0);
-    console.error(`API Error: ${error.config?.url} (${duration}ms)`, error.response?.data);
-    
+    console.error(
+      `API Error: ${error.config?.url} (${duration}ms)`,
+      error.response?.data,
+    );
+
     // Handle specific error codes
     if (error.response?.status === 429) {
       // Rate limit exceeded
       throw new Error('Too many requests. Please wait a moment and try again.');
     }
-    
+
     if (error.response?.status === 500) {
       throw new Error('Server error. Our team has been notified.');
     }
-    
+
     if (error.code === 'ECONNABORTED') {
       throw new Error('Request timeout. Please check your connection.');
     }
-    
+
     if (!error.response) {
       throw new Error('Network error. Please check your connection.');
     }
-    
+
     return Promise.reject(error);
-  }
+  },
 );
 
 // Helper for file uploads with progress
 export const uploadWithProgress = (
   url: string,
   formData: FormData,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
 ) => {
   return apiClient.post(url, formData, {
     headers: {
@@ -79,7 +83,9 @@ export const uploadWithProgress = (
     },
     onUploadProgress: (progressEvent) => {
       if (progressEvent.total && onProgress) {
-        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        const progress = Math.round(
+          (progressEvent.loaded * 100) / progressEvent.total,
+        );
         onProgress(progress);
       }
     },
@@ -94,4 +100,3 @@ declare module 'axios' {
     };
   }
 }
-

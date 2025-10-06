@@ -34,9 +34,11 @@ export const useDocuments = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      
-      toast.success(`Successfully uploaded ${data.successful} of ${data.total} documents`);
-      
+
+      toast.success(
+        `Successfully uploaded ${data.successful} of ${data.total} documents`,
+      );
+
       setUploadProgress(0);
     },
     onError: (error: any) => {
@@ -55,4 +57,3 @@ export const useDocuments = () => {
     uploadProgress,
   };
 };
-

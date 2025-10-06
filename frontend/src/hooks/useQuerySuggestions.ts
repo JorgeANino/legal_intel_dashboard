@@ -26,10 +26,10 @@ export const useQuerySuggestions = () => {
       setSuggestions([]);
       return;
     }
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await queryApi.getSuggestions(query);
       setSuggestions(response.suggestions);
@@ -47,11 +47,11 @@ export const useQuerySuggestions = () => {
     setError(null);
   };
 
-  return { 
-    suggestions, 
-    isLoading, 
-    error, 
-    fetchSuggestions, 
-    clearSuggestions 
+  return {
+    suggestions,
+    isLoading,
+    error,
+    fetchSuggestions,
+    clearSuggestions,
   };
 };

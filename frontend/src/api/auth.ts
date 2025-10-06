@@ -24,7 +24,10 @@ export const authApi = {
    * Authenticate user with email and password
    */
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
-    const response = await apiClient.post<LoginResponse>('/auth/login', credentials);
+    const response = await apiClient.post<LoginResponse>(
+      '/auth/login',
+      credentials,
+    );
     return response.data;
   },
 

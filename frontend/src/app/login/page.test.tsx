@@ -23,9 +23,7 @@ const createTestWrapper = () => {
   });
 
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 
@@ -35,7 +33,7 @@ describe('LoginPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockUseRouter.mockReturnValue({
       push: mockPush,
       back: jest.fn(),
@@ -59,7 +57,9 @@ describe('LoginPage', () => {
     render(<LoginPage />, { wrapper: createTestWrapper() });
 
     expect(screen.getByText('Legal Intel Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Sign in to access your documents')).toBeInTheDocument();
+    expect(
+      screen.getByText('Sign in to access your documents'),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Email address')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
@@ -135,7 +135,9 @@ describe('LoginPage', () => {
   });
 
   it('shows loading state when submitting', async () => {
-    mockLogin.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+    mockLogin.mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 100)),
+    );
 
     render(<LoginPage />, { wrapper: createTestWrapper() });
 
@@ -234,11 +236,15 @@ describe('LoginPage', () => {
     render(<LoginPage />, { wrapper: createTestWrapper() });
 
     expect(screen.getByText('Legal Intel Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Production-grade document intelligence platform')).toBeInTheDocument();
+    expect(
+      screen.getByText('Production-grade document intelligence platform'),
+    ).toBeInTheDocument();
   });
 
   it('handles login errors gracefully', async () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleError = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
     mockLogin.mockRejectedValue(new Error('Login failed'));
 
     render(<LoginPage />, { wrapper: createTestWrapper() });
