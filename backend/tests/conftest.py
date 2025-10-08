@@ -3,6 +3,7 @@ Shared pytest fixtures for all tests
 """
 # Standard library imports
 import io
+import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 # Third-party imports
@@ -16,8 +17,9 @@ from app.main import app
 from app.middleware.rate_limit import rate_limit_dependency
 from app.models.user import User
 
+
 # Patch DocumentService globally to prevent filesystem operations
-_doc_service_patcher = patch('app.api.v1.endpoints.documents.DocumentService')
+_doc_service_patcher = patch("app.api.v1.endpoints.documents.DocumentService")
 _mock_doc_service_class = _doc_service_patcher.start()
 _mock_doc_service_instance = MagicMock()
 _mock_doc_service_class.return_value = _mock_doc_service_instance
@@ -26,17 +28,16 @@ _mock_doc_service_instance.get_document = AsyncMock(return_value=None)
 _mock_doc_service_instance.list_documents = AsyncMock(return_value=[])
 
 # Make the mock instance available globally for tests
-import sys
 sys.modules[__name__]._mock_doc_service_instance = _mock_doc_service_instance
 
 # Patch Celery tasks globally to prevent Redis connection issues
-_celery_task_patcher = patch('app.api.v1.endpoints.documents.process_document_task')
+_celery_task_patcher = patch("app.api.v1.endpoints.documents.process_document_task")
 _mock_celery_task = _celery_task_patcher.start()
 _mock_celery_task.delay = MagicMock()
 _mock_celery_task.apply_async = MagicMock()
 
 # Patch cache service globally to prevent Redis connection issues
-_cache_service_patcher = patch('app.api.v1.endpoints.documents.cache_service')
+_cache_service_patcher = patch("app.api.v1.endpoints.documents.cache_service")
 _mock_cache_service = _cache_service_patcher.start()
 _mock_cache_service.delete = AsyncMock()
 _mock_cache_service.get = AsyncMock(return_value=None)

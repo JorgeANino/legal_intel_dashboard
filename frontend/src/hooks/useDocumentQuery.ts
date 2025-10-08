@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 
 import { queryApi } from '@/api/query';
@@ -33,34 +33,60 @@ export const useDocumentQuery = () => {
     },
   });
 
-  const executeQuery = (question: string) => {
-    const newParams = { ...queryParams, question, page: 1 };
-    setQueryParams(newParams);
-    queryMutation.mutate(newParams);
-  };
+  const executeQuery = useCallback(
+    (question: string) => {
+      setQueryParams((prev) => {
+        const newParams = { ...prev, question, page: 1 };
+        queryMutation.mutate(newParams);
+        return newParams;
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
-  const changePage = (page: number) => {
-    const newParams = { ...queryParams, page };
-    setQueryParams(newParams);
-    queryMutation.mutate(newParams);
-  };
+  const changePage = useCallback(
+    (page: number) => {
+      setQueryParams((prev) => {
+        const newParams = { ...prev, page };
+        queryMutation.mutate(newParams);
+        return newParams;
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
-  const applyFilters = (filters: QueryFilters) => {
-    const newParams = { ...queryParams, filters, page: 1 };
-    setQueryParams(newParams);
-    queryMutation.mutate(newParams);
-  };
+  const applyFilters = useCallback(
+    (filters: QueryFilters) => {
+      setQueryParams((prev) => {
+        const newParams = { ...prev, filters, page: 1 };
+        queryMutation.mutate(newParams);
+        return newParams;
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
-  const changeSort = (sortBy: string, sortOrder: string) => {
-    const newParams = {
-      ...queryParams,
-      sort_by: sortBy as any,
-      sort_order: sortOrder as any,
-      page: 1,
-    };
-    setQueryParams(newParams);
-    queryMutation.mutate(newParams);
-  };
+  const changeSort = useCallback(
+    (sortBy: string, sortOrder: string) => {
+      setQueryParams((prev) => {
+        const newParams = {
+          ...prev,
+          sort_by: sortBy as any,
+          sort_order: sortOrder as any,
+          page: 1,
+        };
+        queryMutation.mutate(newParams);
+        return newParams;
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  const clearHistory = useCallback(() => setQueryHistory([]), []);
 
   return {
     executeQuery,
@@ -72,6 +98,6 @@ export const useDocumentQuery = () => {
     queryResult: queryMutation.data,
     queryError: queryMutation.error,
     queryHistory,
-    clearHistory: () => setQueryHistory([]),
+    clearHistory,
   };
 };

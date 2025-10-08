@@ -36,17 +36,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Check for existing session on mount
   useEffect(() => {
     const initAuth = async () => {
+      console.log('[Auth] Initializing authentication...');
       const token = localStorage.getItem('access_token');
       const savedUser = localStorage.getItem('user');
 
+      console.log(
+        '[Auth] Token found:',
+        token ? `Yes (length: ${token.length})` : 'No',
+      );
+      console.log('[Auth] Saved user found:', savedUser ? 'Yes' : 'No');
+
       if (token && savedUser) {
         try {
-          setUser(JSON.parse(savedUser));
+          const parsedUser = JSON.parse(savedUser);
+          setUser(parsedUser);
+          console.log('[Auth] ✓ Session restored for:', parsedUser.email);
         } catch (error) {
-          console.error('Failed to parse saved user:', error);
+          console.error('[Auth] ❌ Failed to parse saved user:', error);
           localStorage.removeItem('user');
           localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
         }
+      } else {
+        console.log('[Auth] No existing session found');
       }
 
       setIsLoading(false);
@@ -57,19 +69,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (credentials: LoginCredentials) => {
     try {
+      console.log('[Auth] Attempting login for:', credentials.email);
       const response = await authApi.login(credentials);
+
+      console.log('[Auth] Login successful, storing tokens');
+      console.log('[Auth] Access token length:', response.access_token?.length);
+      console.log(
+        '[Auth] Refresh token length:',
+        response.refresh_token?.length,
+      );
 
       // Store tokens and user info
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('refresh_token', response.refresh_token);
       localStorage.setItem('user', JSON.stringify(response.user));
 
+      // Verify storage
+      const storedToken = localStorage.getItem('access_token');
+      console.log(
+        '[Auth] ✓ Token stored successfully:',
+        storedToken ? 'Yes' : 'No',
+      );
+      console.log(
+        '[Auth] ✓ Token verification:',
+        storedToken === response.access_token ? 'Match' : 'Mismatch!',
+      );
+
       setUser(response.user);
 
       toast.success(`Welcome back, ${response.user.full_name}!`);
+      console.log('[Auth] Redirecting to dashboard');
       router.push('/');
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('[Auth] ❌ Login error:', error);
       toast.error(error.response?.data?.detail || 'Invalid email or password');
       throw error;
     }

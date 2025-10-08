@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 # Local application imports
 from app.core.config import settings
+from app.core.database import get_db
 
 
 # Password hashing context
@@ -93,8 +94,8 @@ def decode_token(token: str) -> dict | None:
         return None
 
 
-# Bearer token security scheme
-security = HTTPBearer()
+# Bearer token security scheme (auto_error=False allows us to handle missing tokens gracefully)
+security = HTTPBearer(auto_error=False)
 
 
 async def get_current_user_from_token(token: str, db: AsyncSession):
@@ -154,16 +155,15 @@ async def get_current_user_from_token(token: str, db: AsyncSession):
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Dependency to get current authenticated user from JWT token
 
-    NOTE: This dependency requires database access. Each endpoint using this
-    must also include `db: AsyncSession = Depends(get_db)` parameter.
-
     Args:
-        credentials: HTTP Bearer token from Authorization header
+        credentials: HTTP Bearer token from Authorization header (None if missing)
+        db: Database session
 
     Returns:
         User object
@@ -172,8 +172,7 @@ async def get_current_user(
         HTTPException: 401 if token is invalid or user not found
     """
     # Import here to avoid circular dependency
-    # Local application imports
-    from app.core.database import AsyncSessionLocal
+    from app.core.logging_config import logger
     from app.models.user import User
 
     credentials_exception = HTTPException(
@@ -182,36 +181,50 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+    # Check if credentials were provided
+    if credentials is None:
+        logger.warning("No credentials provided in request")
+        raise credentials_exception
+
     try:
         # Decode token
+        logger.debug(f"Attempting to decode token: {credentials.credentials[:20]}...")
         payload = decode_token(credentials.credentials)
         if payload is None:
+            logger.warning("Token decode returned None")
             raise credentials_exception
 
         # Extract user_id from token and convert to int
         user_id_raw = payload.get("sub")
         if user_id_raw is None:
+            logger.warning("No 'sub' claim found in token")
             raise credentials_exception
 
         # Ensure user_id is an integer (JWT may store it as string)
         try:
             user_id: int = int(user_id_raw)
+            logger.debug(f"Extracted user_id: {user_id}")
         except (ValueError, TypeError):
+            logger.warning(f"Invalid user_id format: {user_id_raw}")
             raise credentials_exception
 
-        # Create a new database session for auth validation
-        async with AsyncSessionLocal() as db:
-            # Get user from database
-            result = await db.execute(select(User).where(User.id == user_id))
-            user = result.scalar_one_or_none()
+        # Get user from database using the provided session
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
 
-            if user is None:
-                raise credentials_exception
+        if user is None:
+            logger.warning(f"User not found with id: {user_id}")
+            raise credentials_exception
 
-            if not user.is_active:
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user")
+        if not user.is_active:
+            logger.warning(f"Inactive user attempted access: {user_id}")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user")
 
-            return user
+        logger.debug(f"Successfully authenticated user: {user.email}")
+        return user
 
-    except JWTError:
+    except HTTPException:
+        raise
+    except JWTError as e:
+        logger.warning(f"JWT decode error: {str(e)}")
         raise credentials_exception

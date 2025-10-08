@@ -3,7 +3,7 @@ Detailed tests for document endpoints
 """
 # Standard library imports
 import io
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 # Import the global mock instance
 from tests.conftest import _mock_doc_service_instance

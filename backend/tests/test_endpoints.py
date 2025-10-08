@@ -2,7 +2,7 @@
 Comprehensive tests for all API endpoints
 """
 # Standard library imports
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 
 class TestHealthEndpoints:
@@ -156,7 +156,7 @@ class TestDashboardEndpoints:
             "agreement_types": {},
             "jurisdictions": {},
             "industries": {},
-            "geographies": {}
+            "geographies": {},
         }
 
         response = client.get("/api/v1/dashboard")

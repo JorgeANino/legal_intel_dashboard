@@ -44,8 +44,7 @@ export const QueryInput = ({
       clearSuggestions();
       setShowSuggestions(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery]);
+  }, [debouncedQuery, fetchSuggestions, clearSuggestions]);
 
   // Handle clicking outside to close suggestions
   useEffect(() => {
